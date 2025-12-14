@@ -1,6 +1,6 @@
 {
     "@context": "http://iiif.io/api/presentation/3/context.json",
-    "id": "http://omekas.localhost/s/site-1/audio-player/annotation/iiif/2",
+    "id": "https://omekas.localhost/api/audio-player/annotation/iiif/2",
     "type": "AnnotationPage",
     "items": [
         {
@@ -15,11 +15,17 @@
                 "language": "fr",
                 "label": "Introduction"
             },
-            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=0.5,15.2",
+            "target": "https://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=0.5,0",
             "created": "2025-11-20 10:30:00",
             "creator": {
                 "id": "user:1",
-                "type": "Person"
+                "type": "Person",
+                "name": "Antoine Dupré",
+                "label": {
+                    "none": [
+                        "Antoine Dupré"
+                    ]
+                }
             }
         },
         {
@@ -34,11 +40,17 @@
                 "language": "fr",
                 "label": "Riff d'ouverture"
             },
-            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=12.3,14.5",
+            "target": "https://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=12.3,14.5",
             "created": "2025-11-20 09:15:00",
             "creator": {
                 "id": "user:1",
-                "type": "Person"
+                "type": "Person",
+                "name": "Antoine Dupré",
+                "label": {
+                    "none": [
+                        "Antoine Dupré"
+                    ]
+                }
             }
         },
         {
@@ -53,11 +65,17 @@
                 "language": "fr",
                 "label": "Couplet 1"
             },
-            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=16.8,32.5",
+            "target": "https://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=16.8,32.5",
             "created": "2025-11-21 14:15:00",
             "creator": {
                 "id": "user:1",
-                "type": "Person"
+                "type": "Person",
+                "name": "Antoine Dupré",
+                "label": {
+                    "none": [
+                        "Antoine Dupré"
+                    ]
+                }
             }
         },
         {
@@ -72,11 +90,17 @@
                 "language": "fr",
                 "label": "Refrain"
             },
-            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=34.7,50.4",
+            "target": "https://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=34.7,50.4",
             "created": "2025-11-22 09:45:00",
             "creator": {
                 "id": "user:1",
-                "type": "Person"
+                "type": "Person",
+                "name": "Antoine Dupré",
+                "label": {
+                    "none": [
+                        "Antoine Dupré"
+                    ]
+                }
             }
         },
         {
@@ -91,11 +115,17 @@
                 "language": "fr",
                 "label": "Couplet 2"
             },
-            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=52.1,68.9",
+            "target": "https://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=52.1,68.9",
             "created": "2025-11-23 16:20:00",
             "creator": {
                 "id": "user:1",
-                "type": "Person"
+                "type": "Person",
+                "name": "Antoine Dupré",
+                "label": {
+                    "none": [
+                        "Antoine Dupré"
+                    ]
+                }
             }
         },
         {
@@ -110,11 +140,17 @@
                 "language": "fr",
                 "label": "Breakdown"
             },
-            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=60.2,65.8",
+            "target": "https://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=60.2,65.8",
             "created": "2025-11-23 18:30:00",
             "creator": {
                 "id": "user:1",
-                "type": "Person"
+                "type": "Person",
+                "name": "Antoine Dupré",
+                "label": {
+                    "none": [
+                        "Antoine Dupré"
+                    ]
+                }
             }
         },
         {
@@ -129,11 +165,17 @@
                 "language": "fr",
                 "label": "Pont"
             },
-            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=70.5,85.2",
+            "target": "https://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=70.5,85.2",
             "created": "2025-11-24 11:05:00",
             "creator": {
                 "id": "user:1",
-                "type": "Person"
+                "type": "Person",
+                "name": "Antoine Dupré",
+                "label": {
+                    "none": [
+                        "Antoine Dupré"
+                    ]
+                }
             }
         },
         {
@@ -148,11 +190,17 @@
                 "language": "fr",
                 "label": "Refrain final"
             },
-            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=87.6,102.3",
+            "target": "https://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=87.6,102.3",
             "created": "2025-11-25 13:30:00",
             "creator": {
                 "id": "user:1",
-                "type": "Person"
+                "type": "Person",
+                "name": "Antoine Dupré",
+                "label": {
+                    "none": [
+                        "Antoine Dupré"
+                    ]
+                }
             }
         },
         {
@@ -167,11 +215,17 @@
                 "language": "fr",
                 "label": "Solo de guitare"
             },
-            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=104.7,115.4",
+            "target": "https://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=104.7,115.4",
             "created": "2025-11-26 08:45:00",
             "creator": {
                 "id": "user:1",
-                "type": "Person"
+                "type": "Person",
+                "name": "Antoine Dupré",
+                "label": {
+                    "none": [
+                        "Antoine Dupré"
+                    ]
+                }
             }
         },
         {
@@ -186,11 +240,17 @@
                 "language": "fr",
                 "label": "Outro"
             },
-            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=117.8,120",
+            "target": "https://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=117.8,120",
             "created": "2025-11-26 15:20:00",
             "creator": {
                 "id": "user:1",
-                "type": "Person"
+                "type": "Person",
+                "name": "Antoine Dupré",
+                "label": {
+                    "none": [
+                        "Antoine Dupré"
+                    ]
+                }
             }
         }
     ]
