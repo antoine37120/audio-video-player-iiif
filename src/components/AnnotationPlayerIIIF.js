@@ -153,6 +153,10 @@ class AnnotationPlayerIIIF extends HTMLElement {
                         <label>Start Time (s):</label>
                         <input type="number" class="start-time" step="0.1">
                     </div>
+                    <div class="form-group">
+                        <label>Title:</label>
+                        <input type="text" class="annotation-title">
+                    </div>
                     <div class="form-group end-time-group" style="display:none;">
                         <label>End Time (s):</label>
                         <input type="number" class="end-time" step="0.1">
@@ -325,6 +329,13 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
         this.timeline = new Timeline(container, this.items, this.groups, options);
         this.timeline.addCustomTime(0, 'videoProgress');
+
+        // Listen for item changes to update the list
+        this.items.on('*', () => {
+             if (this.player) {
+                 this.updateAnnotationDisplay(this.player.currentTime() * 1000);
+             }
+        });
 
         // Bind Timeline Events
         this.timeline.on('mouseDown', (props) => this.handleMouseDown(props));
@@ -686,6 +697,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
         const modal = this.querySelector('.modal-overlay');
         const typeSelect = this.querySelector('.annotation-type');
         const startTimeInput = this.querySelector('.start-time');
+        const titleInput = this.querySelector('.annotation-title');
         const endTimeInput = this.querySelector('.end-time');
         const endTimeGroup = this.querySelector('.end-time-group');
         const textInput = this.querySelector('.annotation-text');
@@ -705,7 +717,8 @@ class AnnotationPlayerIIIF extends HTMLElement {
             endTimeGroup.style.display = 'none';
         }
 
-        textInput.value = item.content || '';
+        titleInput.value = item.label || '';
+        textInput.value = item.value || item.content || '';
         modal.style.display = 'flex';
 
         typeSelect.onchange = () => {
@@ -729,9 +742,12 @@ class AnnotationPlayerIIIF extends HTMLElement {
         newSaveBtn.onclick = () => {
             const type = typeSelect.value;
             const newStart = parseFloat(startTimeInput.value) * 1000;
+            const title = titleInput.value;
             const text = textInput.value;
 
-            item.content = text;
+            item.label = title;
+            item.value = text;
+            item.content = title || text;
             item.start = newStart;
             item.type = type;
             item.group = 0;
