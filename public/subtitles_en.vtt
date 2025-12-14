@@ -1,0 +1,25 @@
+WEBVTT
+
+00:00:01.000 --> 00:00:04.000
+Welcome to this demonstration of the IIIF Annotation Player.
+
+00:00:05.000 --> 00:00:09.000
+This player is capable of displaying media and synchronized annotations.
+
+00:00:10.000 --> 00:00:15.000
+You can navigate through the timeline to see different parts of the media.
+
+00:00:20.000 --> 00:00:25.000
+Subtitles can be displayed in multiple languages.
+
+00:00:30.000 --> 00:00:35.000
+This is an example of an English subtitle track.
+
+00:01:00.000 --> 00:01:05.000
+We are now one minute into the video.
+
+00:01:30.000 --> 00:01:35.000
+The player supports various annotation types.
+
+00:01:50.000 --> 00:01:55.000
+Thank you for watching this test.

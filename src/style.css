@@ -1,0 +1,199 @@
+/* ensure progress control is on top of wavesurfer.js plugins */
+.vjs-wavesurfer .vjs-progress-control {
+    z-index: 4;
+}
+
+.waveform-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    /* Behind items (usually z-index 10+) */
+    pointer-events: none;
+    /* Allow clicks to pass through to timeline */
+}
+
+.vjs-default-skin.vjs-paused .vjs-control-bar {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+
+.annotation-card {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.annotation-time {
+    font-weight: bold;
+    margin-right: 5px;
+    color: #555;
+}
+
+/* ensure progress control is on top of wavesurfer.js plugins */
+.vjs-wavesurfer .vjs-progress-control {
+    z-index: 4;
+}
+
+.waveform-canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: -1;
+    /* Behind items (usually z-index 10+) */
+    pointer-events: none;
+    /* Allow clicks to pass through to timeline */
+}
+
+.vjs-default-skin.vjs-paused .vjs-control-bar {
+    display: flex;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.annotation-card {
+    background: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.annotation-time {
+    font-weight: bold;
+    margin-right: 5px;
+    color: #555;
+}
+
+/* Player Container */
+.player-container {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.player-container .video-js {
+    width: 100%;
+    min-height: 30px;
+}
+
+.player-container .video-js .vjs-text-track-cue {
+    min-height: 20px !important;
+    bottom: 10px !important;
+    top: auto !important;
+    height: auto !important;
+}
+
+.player-container .video-js .vjs-text-track-display>div {
+    margin: 0 !important;
+}
+
+.player-container .video-js .vjs-text-track-cue>div {
+    font-size: 0.9rem !important;
+}
+
+.player-container .visualization {
+    width: 100%;
+    border: 1px solid #ddd;
+    border-top: none;
+}
+
+.player-container .controls {
+    margin-top: 5px;
+}
+
+.player-container .add-annotation-btn {
+    background: #28a745;
+    color: white;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    display: none;
+}
+
+.player-container .annotation-display {
+    margin-top: 10px;
+    width: 100%;
+}
+
+
+
+/* Modal */
+.modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.annotation-form {
+    background: white;
+    padding: 20px;
+    border-radius: 8px;
+    width: 400px;
+    max-width: 90%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.annotation-form h3 {
+    margin-top: 0;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+}
+
+.form-group input,
+.form-group select,
+.form-group textarea {
+    width: 100%;
+    padding: 8px;
+    box-sizing: border-box;
+}
+
+.form-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+
+.form-actions button {
+    padding: 8px 16px;
+    cursor: pointer;
+    border: none;
+    border-radius: 4px;
+}
+
+.cancel-annotation {
+    background: #ccc;
+}
+
+.save-annotation {
+    background: #007bff;
+    color: white;
+}

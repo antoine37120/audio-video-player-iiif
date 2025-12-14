@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VisJS Timeline + IIIF Demo (Web Component)</title>
+    <!-- We might need to bundle the component or import it as module -->
+    <!-- Assuming a build process or direct module import if browser supports it -->
+    <link rel="stylesheet" href="dist/player-iiif-vis.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            margin: 20px;
+        }
+
+        /* Basic container style if needed */
+        #player-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+    </style>
+</head>
+
+<body>
+
+    <h1>Audio Annotation with VisJS Timeline (Web Component)</h1>
+
+    <div id="player-container">
+        <annotation-player-iiif iiif-annotation-list-url="https://omekas.localhost/api/audio-player/annotation/iiif/2"
+            media-url="media/hal.mp3" media-type="audio" wave-form-url="public/waveform.json"
+            waveform-stroke-color="rgba(0, 0, 0, 0.48)" waveform-stroke-width="1" annotation-min-time-to-display="15"
+            annotation-properties-to-display="time,text,creator.id" can-add-annotation="true"
+            can-edit-all-annotation="true"
+            subtitle-files-url='[{"url": "public/subtitles_en.vtt", "language": "en", "label": "English"}, {"url": "public/subtitles_fr.vtt", "language": "fr", "label": "Français"}]'></annotation-player-iiif>
+    </div>
+
+    <div style="margin-top: 20px; color: #666;">
+        <p><strong>Instructions:</strong></p>
+        <ul>
+            <li>Double-click on the timeline to create a new annotation.</li>
+            <li>Drag items to move them.</li>
+            <li>Drag edges of items to resize them.</li>
+            <li>Click an item to seek the audio.</li>
+        </ul>
+    </div>
+
+    <!-- Import the component. 
+         If using a bundler (like Webpack/Parcel), this would be the entry point.
+         For this demo, we assume the file is accessible or bundled. 
+         Since the user has a 'src' folder, they likely have a build step. 
+         I will point to the source file as module for modern browsers or assume build.
+    -->
+    <script type="module" src="dist/player-iiif-vis.js"></script>
+
+</body>
+
+</html>

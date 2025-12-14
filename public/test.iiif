@@ -1,0 +1,40 @@
+{
+  "@context": "http://iiif.io/api/presentation/2/context.json",
+  "@id": "http://localhost/player-iiif/public/test.iiif",
+  "@type": "sc:AnnotationList",
+  "resources": [
+    {
+      "@id": "http://localhost/player-iiif/annotation/1",
+      "@type": "oa:Annotation",
+      "motivation": "sc:painting",
+      "resource": {
+        "@type": "cnt:ContentAsText",
+        "chars": "This is a point annotation",
+        "format": "text/plain"
+      },
+      "on": "http://localhost/player-iiif/media/hal.wav#t=5.5"
+    },
+    {
+      "@id": "http://localhost/player-iiif/annotation/2",
+      "@type": "oa:Annotation",
+      "motivation": "sc:painting",
+      "resource": {
+        "@type": "cnt:ContentAsText",
+        "chars": "This is a range annotation",
+        "format": "text/plain"
+      },
+      "on": "http://localhost/player-iiif/media/hal.wav#t=10,15"
+    },
+     {
+      "@id": "http://localhost/player-iiif/annotation/3",
+      "@type": "oa:Annotation",
+      "motivation": "sc:painting",
+      "resource": {
+        "@type": "cnt:ContentAsText",
+        "chars": "Another range annotation overlapping",
+        "format": "text/plain"
+      },
+      "on": "http://localhost/player-iiif/media/hal.wav#t=12,18"
+    }
+  ]
+}

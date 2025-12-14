@@ -1,0 +1,40 @@
+{
+    "@context": "http://iiif.io/api/presentation/3/context.json",
+    "id": "https://example.org/iiif/list/1",
+    "type": "AnnotationPage",
+    "items": [
+        {
+            "id": "https://example.org/iiif/annotation/1",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Introduction to the piece",
+                "format": "text/plain"
+            },
+            "target": "https://example.org/iiif/canvas/1#t=0,10"
+        },
+        {
+            "id": "https://example.org/iiif/annotation/2",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Key change here",
+                "format": "text/plain"
+            },
+            "target": "https://example.org/iiif/canvas/1#t=15,25"
+        },
+        {
+            "id": "https://example.org/iiif/annotation/3",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Conclusion",
+                "format": "text/plain"
+            },
+            "target": "https://example.org/iiif/canvas/1#t=45,60"
+        }
+    ]
+}

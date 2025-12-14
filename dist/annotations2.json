@@ -1,0 +1,197 @@
+{
+    "@context": "http://iiif.io/api/presentation/3/context.json",
+    "id": "http://omekas.localhost/s/site-1/audio-player/annotation/iiif/2",
+    "type": "AnnotationPage",
+    "items": [
+        {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": "ann1",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Batterie et basse lancent le morceau avec une introduction dynamique",
+                "format": "text/plain",
+                "language": "fr",
+                "label": "Introduction"
+            },
+            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=0.5,15.2",
+            "created": "2025-11-20 10:30:00",
+            "creator": {
+                "id": "user:1",
+                "type": "Person"
+            }
+        },
+        {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": "ann9",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Riff de guitare électrique distinctif qui introduit le morceau",
+                "format": "text/plain",
+                "language": "fr",
+                "label": "Riff d'ouverture"
+            },
+            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=12.3,14.5",
+            "created": "2025-11-20 09:15:00",
+            "creator": {
+                "id": "user:1",
+                "type": "Person"
+            }
+        },
+        {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": "ann2",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Voix principale et guitare rythmique avec une mélodie entraînante",
+                "format": "text/plain",
+                "language": "fr",
+                "label": "Couplet 1"
+            },
+            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=16.8,32.5",
+            "created": "2025-11-21 14:15:00",
+            "creator": {
+                "id": "user:1",
+                "type": "Person"
+            }
+        },
+        {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": "ann3",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Chœur harmonieux avec une progression rythmique distincte",
+                "format": "text/plain",
+                "language": "fr",
+                "label": "Refrain"
+            },
+            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=34.7,50.4",
+            "created": "2025-11-22 09:45:00",
+            "creator": {
+                "id": "user:1",
+                "type": "Person"
+            }
+        },
+        {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": "ann4",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Basse profonde et synthétiseur ajoutant une dimension électronique",
+                "format": "text/plain",
+                "language": "fr",
+                "label": "Couplet 2"
+            },
+            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=52.1,68.9",
+            "created": "2025-11-23 16:20:00",
+            "creator": {
+                "id": "user:1",
+                "type": "Person"
+            }
+        },
+        {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": "ann10",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Section instrumentale intense avec des harmonies complexes",
+                "format": "text/plain",
+                "language": "fr",
+                "label": "Breakdown"
+            },
+            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=60.2,65.8",
+            "created": "2025-11-23 18:30:00",
+            "creator": {
+                "id": "user:1",
+                "type": "Person"
+            }
+        },
+        {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": "ann5",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Transition instrumentale avec des effets de reverb et de delay",
+                "format": "text/plain",
+                "language": "fr",
+                "label": "Pont"
+            },
+            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=70.5,85.2",
+            "created": "2025-11-24 11:05:00",
+            "creator": {
+                "id": "user:1",
+                "type": "Person"
+            }
+        },
+        {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": "ann6",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Chœur renforcé avec une mélodie plus expressive",
+                "format": "text/plain",
+                "language": "fr",
+                "label": "Refrain final"
+            },
+            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=87.6,102.3",
+            "created": "2025-11-25 13:30:00",
+            "creator": {
+                "id": "user:1",
+                "type": "Person"
+            }
+        },
+        {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": "ann7",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Solo technique avec des arpèges et des effets de distorsion",
+                "format": "text/plain",
+                "language": "fr",
+                "label": "Solo de guitare"
+            },
+            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=104.7,115.4",
+            "created": "2025-11-26 08:45:00",
+            "creator": {
+                "id": "user:1",
+                "type": "Person"
+            }
+        },
+        {
+            "@context": "http://www.w3.org/ns/anno.jsonld",
+            "id": "ann8",
+            "type": "Annotation",
+            "motivation": "commenting",
+            "body": {
+                "type": "TextualBody",
+                "value": "Batterie et basse terminent le morceau avec une fin épique",
+                "format": "text/plain",
+                "language": "fr",
+                "label": "Outro"
+            },
+            "target": "http://omekas.localhost/files/original/b96ffd8f6bab3e753b748638ba088641b53dd64a.mp3#t=117.8,120",
+            "created": "2025-11-26 15:20:00",
+            "creator": {
+                "id": "user:1",
+                "type": "Person"
+            }
+        }
+    ]
+}
