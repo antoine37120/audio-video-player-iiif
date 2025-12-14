@@ -1,0 +1,5 @@
+127.0.0.1 - - [14/Dec/2025 23:16:28] "GET /test_verification_list.html HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 23:16:28] "GET /dist/player-iiif-vis.js HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 23:16:28] "GET /dist/player-iiif-vis.css HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 23:16:28] "GET /dist/annotations2.json HTTP/1.1" 200 -
+127.0.0.1 - - [14/Dec/2025 23:16:28] "GET /dist/waveform.json HTTP/1.1" 200 -

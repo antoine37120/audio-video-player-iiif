@@ -133,6 +133,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
                     <button class="add-annotation-btn">
                         + Ajouter une annotation
                     </button>
+                    <input type="text" class="annotation-search" placeholder="Rechercher une annotation...">
                 </div>
                 <div class="annotation-display"></div>
             </div>
@@ -261,6 +262,12 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 updateTime: true, // We might want to restrict this too based on permissions
                 updateGroup: false,
                 remove: true // And this
+            },
+            template: (item, element, data) => {
+                if (item.type === 'point') {
+                    element.classList.add('point-annotation');
+                }
+                return item.content;
             },
             multiselect: false,
             moment: function(date) {
@@ -397,6 +404,15 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 });
             });
         }
+
+        const searchInput = this.querySelector('.annotation-search');
+        if (searchInput) {
+            searchInput.addEventListener('input', () => {
+                if (this.player) {
+                    this.updateAnnotationDisplay(this.player.currentTime() * 1000);
+                }
+            });
+        }
     }
 
     loadData() {
@@ -414,58 +430,64 @@ class AnnotationPlayerIIIF extends HTMLElement {
             const data = await response.json();
             let parsedItems = [];
 
-            if (data['@type'] === 'sc:AnnotationList' && data.resources) {
-                parsedItems = data.resources.map((resource, index) => {
-                    const on = resource.on;
-                    const timeMatch = on.match(/t=([\d\.]+)(,([\d\.]+))?/);
-                    let start = 0;
-                    let end = null;
-                    let type = 'point';
+            const processItem = (item, index) => {
+                const target = item.target || item.on;
+                // Handle different target structures (string or object)
+                const targetStr = typeof target === 'string' ? target : (target.id || '');
+                const timeMatch = targetStr.match(/t=([\d\.]+)(,([\d\.]+))?/);
 
-                    if (timeMatch) {
-                        start = parseFloat(timeMatch[1]) * 1000;
-                        if (timeMatch[3]) {
-                            end = parseFloat(timeMatch[3]) * 1000;
+                let start = 0;
+                let end = null;
+                let type = 'point';
+
+                if (timeMatch) {
+                    start = parseFloat(timeMatch[1]) * 1000;
+                    // Check if there is an end time and if it is greater than start (and > 0)
+                    if (timeMatch[3]) {
+                        const parsedEnd = parseFloat(timeMatch[3]) * 1000;
+                        if (parsedEnd > start && parsedEnd > 0) {
+                            end = parsedEnd;
                             type = 'range';
                         }
                     }
+                }
 
-                    return {
-                        id: resource['@id'] || index + 1,
-                        group: 0,
-                        content: resource.resource.chars || '',
-                        start: start,
-                        end: end,
-                        type: type,
-                        author: ''
-                    };
-                });
-            } else if (data.items) {
-                parsedItems = data.items.map((item, index) => {
-                    const target = item.target;
-                    const timeMatch = target.match(/t=([\d\.]+),([\d\.]+)/);
-                    let start = 0;
-                    let end = 0;
-
-                    if (timeMatch) {
-                        start = parseFloat(timeMatch[1]) * 1000;
-                        end = parseFloat(timeMatch[2]) * 1000;
+                // Extract Creator
+                let creatorName = '';
+                if (item.creator) {
+                    if (item.creator.label && item.creator.label.none) {
+                        creatorName = Array.isArray(item.creator.label.none) ? item.creator.label.none.join(', ') : item.creator.label.none;
+                    } else if (item.creator.name) {
+                        creatorName = item.creator.name;
+                    } else if (item.creator.id) {
+                        creatorName = item.creator.id;
                     }
+                }
 
-                    return {
-                        id: index + 1,
-                        group: 0,
-                        content: item.body.value,
-                        start: start,
-                        end: end,
-                        type: 'range'
-                    };
-                });
+                return {
+                    id: item['@id'] || item.id || index + 1,
+                    group: 0,
+                    content: (item.body && item.body.label) ? item.body.label : (item.body && item.body.value ? item.body.value : ''),
+                    value: (item.body && item.body.value) ? item.body.value : '',
+                    label: (item.body && item.body.label) ? item.body.label : '',
+                    start: start,
+                    end: end,
+                    type: type,
+                    author: creatorName,
+                    created: item.created || ''
+                };
+            };
+
+            if (data['@type'] === 'sc:AnnotationList' && data.resources) {
+                parsedItems = data.resources.map(processItem);
+            } else if (data.items || (data.type === 'AnnotationPage' && data.items)) {
+                parsedItems = data.items.map(processItem);
             }
 
             this.items.clear();
             this.items.add(parsedItems);
             if (this.timeline) this.timeline.fit();
+            this.updateAnnotationDisplay(0); // Initial render
 
         } catch (error) {
             console.error('Error loading IIIF annotations:', error);
@@ -541,25 +563,47 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
     updateAnnotationDisplay(currentTime) {
         const display = this.querySelector('.annotation-display');
+        const searchInput = this.querySelector('.annotation-search');
+        const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
+
         if (!display) return;
 
-        const activeAnnotations = this.items.get({
+        // Get all items to display list, not just active ones
+        // But we filter by search term
+        const allAnnotations = this.items.get({
             filter: (item) => {
-                const start = item.start;
-                let end = item.end;
-                if (!end) end = start;
-                const minDisplayEnd = start + (this._annotationMinTimeToDisplay * 1000);
-                const effectiveEnd = Math.max(end, minDisplayEnd);
-                return currentTime >= start && currentTime <= effectiveEnd;
+                if (!searchTerm) return true;
+                const text = (item.content + ' ' + item.value + ' ' + item.label).toLowerCase();
+                return text.includes(searchTerm);
             }
         });
 
-        activeAnnotations.sort((a, b) => a.start - b.start);
+        // Sort by start time
+        allAnnotations.sort((a, b) => a.start - b.start);
 
-        display.innerHTML = '';
-        activeAnnotations.forEach(item => {
+        // Check if we need to re-render (e.g. items changed count or search changed)
+        if (display.children.length !== allAnnotations.length || display.dataset.lastSearch !== searchTerm) {
+            this.renderAnnotationList(display, allAnnotations);
+            display.dataset.lastSearch = searchTerm;
+        }
+
+        this.updateActiveAnnotations(display, allAnnotations, currentTime);
+    }
+
+    renderAnnotationList(container, annotations) {
+        container.innerHTML = '';
+        annotations.forEach(item => {
             const div = document.createElement('div');
             div.className = 'annotation-card';
+            div.dataset.id = item.id;
+
+            // Click to seek
+            div.onclick = () => {
+                if (this.player) {
+                    this.player.currentTime(item.start / 1000);
+                    this.player.play();
+                }
+            };
 
             const startTimeStr = this.formatTime(item.start / 1000);
             let timeStr = startTimeStr;
@@ -567,19 +611,74 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 timeStr += ` - ${this.formatTime(item.end / 1000)}`;
             }
 
-            let html = '';
-            if (this._annotationPropertiesToDisplay.includes('time')) {
-                html += `<span class="annotation-time">[${timeStr}]</span> : `;
-            }
-            if (this._annotationPropertiesToDisplay.includes('text')) {
-                html += this.escapeHtml(item.content);
-            }
-            if (this._annotationPropertiesToDisplay.includes('author') && item.author) {
-                html += ` <span class="annotation-author">(${this.escapeHtml(item.author)})</span>`;
-            }
+            let html = `
+                <div class="annotation-header">
+                    <span class="annotation-time">${timeStr}</span>
+                    <span class="annotation-label">${this.escapeHtml(item.label || item.content)}</span>
+                </div>
+                <div class="annotation-body">
+                    ${this.escapeHtml(item.value)}
+                </div>
+                <div class="annotation-footer">
+                    <span class="annotation-creator">${this.escapeHtml(item.author)}</span>
+                    <span class="annotation-date">${this.escapeHtml(item.created)}</span>
+                </div>
+                <div class="annotation-progress-bar"></div>
+            `;
 
             div.innerHTML = html;
-            display.appendChild(div);
+            container.appendChild(div);
+        });
+    }
+
+    updateActiveAnnotations(container, annotations, currentTime) {
+        let activeFound = false;
+        let isHovering = container.matches(':hover');
+
+        Array.from(container.children).forEach((div, index) => {
+            const item = annotations[index];
+            if (!item) return;
+
+            // Check if active
+            const start = item.start;
+            let end = item.end;
+            if (!end) end = start + 1000; // Point annotation fallback
+
+            // "Pour les annotions ponctuel trouver un petit effet qui les met en exergue ponctuellement."
+            // Let's use 2s for point.
+            if (item.type === 'point') end = start + 2000;
+
+            const isActive = currentTime >= start && currentTime <= end;
+
+            if (isActive) {
+                div.classList.add('active');
+                if (item.type === 'point') {
+                     div.classList.add('pulse-effect');
+                } else {
+                     div.classList.remove('pulse-effect');
+                }
+
+                // Update Progress Bar
+                if (item.type === 'range') {
+                    const duration = end - start;
+                    const progress = Math.min(100, Math.max(0, ((currentTime - start) / duration) * 100));
+                    const progressBar = div.querySelector('.annotation-progress-bar');
+                    if (progressBar) {
+                        progressBar.style.width = `${progress}%`;
+                    }
+                }
+
+                // Scroll to view if not hovering and first active found
+                if (!activeFound && !isHovering) {
+                    div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    activeFound = true;
+                }
+
+            } else {
+                div.classList.remove('active', 'pulse-effect');
+                const progressBar = div.querySelector('.annotation-progress-bar');
+                if (progressBar) progressBar.style.width = '0%';
+            }
         });
     }
 

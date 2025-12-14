@@ -112,6 +112,10 @@
 
 .player-container .controls {
     margin-top: 5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 10px;
 }
 
 .player-container .add-annotation-btn {
@@ -122,11 +126,114 @@
     border-radius: 4px;
     cursor: pointer;
     display: none;
+    white-space: nowrap;
+}
+
+.player-container .annotation-search {
+    flex-grow: 1;
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
 }
 
 .player-container .annotation-display {
     margin-top: 10px;
     width: 100%;
+    max-height: 300px;
+    overflow-y: auto;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 5px;
+    box-sizing: border-box;
+}
+
+/* Annotation Card Styles */
+.annotation-card {
+    background: #fff;
+    border: 1px solid #eee;
+    padding: 10px;
+    margin-bottom: 5px;
+    border-radius: 4px;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    cursor: pointer;
+    position: relative;
+    transition: background-color 0.2s;
+    overflow: hidden; /* For progress bar */
+}
+
+.annotation-card:hover {
+    background-color: #f9f9f9;
+}
+
+.annotation-card.active {
+    background-color: #e6f7ff;
+    border-color: #1890ff;
+}
+
+.annotation-card.pulse-effect {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.4);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(24, 144, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(24, 144, 255, 0);
+    }
+}
+
+.annotation-progress-bar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 3px;
+    background-color: #1890ff;
+    width: 0%;
+    transition: width 0.2s linear;
+}
+
+.annotation-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    font-size: 0.9em;
+}
+
+.annotation-time {
+    font-weight: bold;
+    color: #555;
+    background: #eee;
+    padding: 2px 5px;
+    border-radius: 3px;
+}
+
+.annotation-label {
+    font-weight: bold;
+    color: #333;
+}
+
+.annotation-body {
+    margin-bottom: 5px;
+    color: #666;
+    font-size: 0.95em;
+}
+
+.annotation-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.8em;
+    color: #999;
+}
+
+/* Timeline specific styles for Point annotations */
+.vis-item.point-annotation {
+    border-color: #d48806;
+    background-color: #ffe58f;
+    /* Add any specific visual effect for points on timeline if possible */
 }
 
 
