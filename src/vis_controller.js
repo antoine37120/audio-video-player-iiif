@@ -1,7 +1,6 @@
 import videojs from 'video.js';
 import { Timeline } from 'vis-timeline/peer';
 import { DataSet } from 'vis-data/peer';
-import moment from 'moment';
 import 'vis-timeline/styles/vis-timeline-graph2d.css';
 import 'video.js/dist/video-js.css';
 import './style.css';
@@ -45,7 +44,7 @@ const options = {
     stack: true,
     showCurrentTime: true,
     start: 0, // Start at 0
-    zoomMin: 20000, // 20 seconds minimum zoom
+    zoomMin: 1000 * 10, // 10 seconds minimum zoom
     selectable: true,
     editable: {
         add: true,
@@ -54,9 +53,6 @@ const options = {
         remove: true
     },
     multiselect: false,
-    moment: function(date) {
-        return moment(date).utc();
-    },
     onAdd: function (item, callback) {
         console.log('onAdd triggered!', item);
         showAnnotationForm(item, callback);
@@ -138,12 +134,9 @@ async function loadIIIFAnnotations(url) {
         player.one('loadedmetadata', () => {
             const duration = player.duration() * 1000;
             timeline.setOptions({
-                min: 0,
-                max: duration,
                 end: duration,
                 zoomMax: duration // Max zoom out is full duration
             });
-            timeline.setWindow(0, duration);
         });
 
     } catch (error) {

@@ -1,6 +1,7 @@
 import videojs from 'video.js';
 import { Timeline } from 'vis-timeline/peer';
 import { DataSet } from 'vis-data/peer';
+import moment from 'moment';
 import 'vis-timeline/styles/vis-timeline-graph2d.css';
 import 'video.js/dist/video-js.css';
 import '../style.css'; // Adjust path if needed
@@ -225,10 +226,14 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this.player.on('loadedmetadata', () => {
             const duration = this.player.duration() * 1000;
             if (this.timeline) {
+                console.log('Setting timeline options with duration:', duration);
                 this.timeline.setOptions({
-                    end: duration,
+                    min: new Date(0),
+                    max: new Date(duration),
+                    end: new Date(duration),
                     zoomMax: duration
                 });
+                this.timeline.setWindow(new Date(0), new Date(duration));
             }
         });
 
@@ -249,7 +254,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
             stack: true,
             showCurrentTime: true,
             start: 0,
-            zoomMin: 1000 * 10,
+            zoomMin: 20000,
             selectable: true,
             editable: {
                 add: this._canAddAnnotation,
@@ -258,6 +263,9 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 remove: true // And this
             },
             multiselect: false,
+            moment: function(date) {
+                return moment(date).utc();
+            },
             onAdd: (item, callback) => {
                 this.showAnnotationForm(item, callback);
             },
