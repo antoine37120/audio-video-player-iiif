@@ -266,6 +266,30 @@ class AnnotationPlayerIIIF extends HTMLElement {
             moment: function(date) {
                 return moment(date).utc();
             },
+            format: {
+                minorLabels: {
+                    millisecond: 'SSS',
+                    second: 's',
+                    minute: 'HH:mm',
+                    hour: 'HH:mm',
+                    weekday: 'ddd D',
+                    day: 'D',
+                    week: 'w',
+                    month: 'MMM',
+                    year: 'YYYY'
+                },
+                majorLabels: {
+                    millisecond: 'HH:mm:ss',
+                    second: 'HH:mm',
+                    minute: '',
+                    hour: '',
+                    weekday: '',
+                    day: '',
+                    week: '',
+                    month: '',
+                    year: ''
+                }
+            },
             onAdd: (item, callback) => {
                 this.showAnnotationForm(item, callback);
             },
