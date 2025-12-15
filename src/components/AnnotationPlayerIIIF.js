@@ -33,7 +33,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this._mediaType = 'audio'; // Default from usage
         this._waveFormUrl = null;
         this._subtitleFilesUrl = null;
-        this._waveformStrokeColor = 'rgba(0, 0, 0, 0.48)';
+        this._waveformStrokeColor = 'rgba(0, 0, 0, 0.2)'; // Lighter for readability
         this._waveformStrokeWidth = 1;
         this._annotationMinTimeToDisplay = 15;
         this._annotationPropertiesToDisplay = ['time', 'text', 'author'];

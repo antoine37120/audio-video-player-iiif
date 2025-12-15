@@ -3527,12 +3527,18 @@ video::-webkit-media-text-track-display {
     border: none;
     border-bottom: 2px solid var(--p-col);
     color: var(--p-col);
-    font-size: 11px;
+    font-size: 11px; /* Base size, content overrides */
     box-shadow: none;
-    /* Reset radius if needed */
     border-radius: 0;
-    /* Ensure content is visible */
     overflow: visible;
+}
+
+.vis-item .vis-item-content {
+    background-color: color-mix(in srgb, var(--bg-col), transparent 30%); /* 70% opacity */
+    padding: 1px 5px 0px 5px; /* Reduced padding */
+    font-size: 12px; /* Increased size */
+    /* Ensure no default border */
+    border: none;
 }
 
 /* Ticks for Range Items (Start and End) */
