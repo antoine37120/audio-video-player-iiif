@@ -130,10 +130,10 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 <audio class="video-js vjs-default-skin"></audio>
                 <div class="visualization"></div>
                 <div class="controls">
-                    <button class="add-annotation-btn">
-                        + Ajouter une annotation
+                    <button class="add-annotation-btn" title="Ajouter une annotation">
+                        +
                     </button>
-                    <input type="text" class="annotation-search" placeholder="Rechercher une annotation...">
+                    <input type="text" class="annotation-search" placeholder="Rechercher...">
                 </div>
                 <div class="annotation-display"></div>
             </div>
@@ -255,7 +255,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
         const container = this.querySelector('.visualization');
         const options = {
             width: '100%',
-            height: '200px',
+            height: '170px',
             stack: true,
             showCurrentTime: true,
             start: 0,

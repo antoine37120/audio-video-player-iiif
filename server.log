@@ -1,5 +1,14 @@
-127.0.0.1 - - [14/Dec/2025 23:45:50] "GET /test_verification_list.html HTTP/1.1" 200 -
-127.0.0.1 - - [14/Dec/2025 23:45:50] "GET /dist/player-iiif-vis.js HTTP/1.1" 200 -
-127.0.0.1 - - [14/Dec/2025 23:45:50] "GET /dist/player-iiif-vis.css HTTP/1.1" 200 -
-127.0.0.1 - - [14/Dec/2025 23:45:50] "GET /dist/annotations2.json HTTP/1.1" 200 -
-127.0.0.1 - - [14/Dec/2025 23:45:50] "GET /dist/waveform.json HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 00:57:46] "GET /compact_test.html HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 00:57:47] "GET /dist/player-iiif-vis.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 00:57:47] "GET /dist/player-iiif-vis.css HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 00:57:47] "GET /public/annotations.json HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 00:57:47] "GET /public/waveform.json HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 00:57:47] code 404, message File not found
+127.0.0.1 - - [15/Dec/2025 00:57:47] "GET /media/hal.mp3 HTTP/1.1" 404 -
+127.0.0.1 - - [15/Dec/2025 01:03:03] "GET /compact_test.html HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 01:03:03] "GET /dist/player-iiif-vis.css HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 01:03:03] "GET /dist/player-iiif-vis.js HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 01:03:04] "GET /public/waveform.json HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 01:03:04] "GET /public/annotations.json HTTP/1.1" 200 -
+127.0.0.1 - - [15/Dec/2025 01:03:04] code 404, message File not found
+127.0.0.1 - - [15/Dec/2025 01:03:04] "GET /media/hal.mp3 HTTP/1.1" 404 -
