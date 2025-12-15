@@ -706,6 +706,14 @@ class AnnotationPlayerIIIF extends HTMLElement {
             if (item.type === 'point') end = start + 2000;
 
             const isActive = currentTime >= start && currentTime <= end;
+            const isPast = currentTime > end;
+
+            // Apply past class
+            if (isPast) {
+                div.classList.add('past');
+            } else {
+                div.classList.remove('past');
+            }
 
             if (isActive) {
                 div.classList.add('active');
@@ -750,12 +758,13 @@ class AnnotationPlayerIIIF extends HTMLElement {
         const saveBtn = this.querySelector('.save-annotation');
         const cancelBtn = this.querySelector('.cancel-annotation');
 
-        const start = item.start.getTime() / 1000;
+        const getTimestamp = (val) => (val instanceof Date) ? val.getTime() : val;
+        const start = getTimestamp(item.start) / 1000;
         startTimeInput.value = start;
 
         if (item.end) {
             typeSelect.value = 'range';
-            endTimeInput.value = item.end.getTime() / 1000;
+            endTimeInput.value = getTimestamp(item.end) / 1000;
             endTimeGroup.style.display = 'block';
         } else {
             typeSelect.value = 'point';

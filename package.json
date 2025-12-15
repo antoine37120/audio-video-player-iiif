@@ -17,6 +17,7 @@
     "vis-timeline": "^8.4.0"
   },
   "devDependencies": {
+    "rollup-plugin-css-only": "^4.5.5",
     "vite": "^7.2.4"
   }
 }
