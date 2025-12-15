@@ -1,8 +1,12 @@
 :host {
-    --p-col: #1890ff; /* Primary */
-    --t-col: #333333; /* Text */
-    --bg-col: #ffffff; /* Background */
-    --b-col: #eeeeee; /* Border */
+    --p-col: #1890ff;
+    /* Primary */
+    --t-col: #333333;
+    /* Text */
+    --bg-col: #ffffff;
+    /* Background */
+    --b-col: #eeeeee;
+    /* Border */
 }
 
 /* ensure progress control is on top of wavesurfer.js plugins */
@@ -112,7 +116,8 @@
     cursor: pointer;
     position: relative;
     transition: background-color 0.2s;
-    overflow: hidden; /* For progress bar */
+    overflow: hidden;
+    /* For progress bar */
 }
 
 .annotation-card:last-child {
@@ -137,9 +142,11 @@
     0% {
         box-shadow: 0 0 0 0 color-mix(in srgb, var(--p-col), transparent 60%);
     }
+
     70% {
         box-shadow: 0 0 0 10px transparent;
     }
+
     100% {
         box-shadow: 0 0 0 0 transparent;
     }
@@ -161,7 +168,8 @@
     align-items: center;
     margin-bottom: 4px;
     font-size: 0.85em;
-    gap: 8px; /* Space between label and time */
+    gap: 8px;
+    /* Space between label and time */
 }
 
 .annotation-label {
@@ -170,7 +178,8 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    flex: 1; /* Label takes available space on the left */
+    flex: 1;
+    /* Label takes available space on the left */
     text-align: left;
 }
 
@@ -199,7 +208,8 @@
     color: #999;
     display: flex;
     align-items: center;
-    opacity: 0; /* Hidden by default */
+    opacity: 0;
+    /* Hidden by default */
     transition: opacity 0.2s, color 0.2s;
 }
 
@@ -230,25 +240,30 @@
 .vis-item {
     background-color: transparent;
     border: none;
-    border-bottom: 2px solid var(--p-col);
+    /*border-bottom: 2px solid var(--p-col);*/
     color: var(--p-col);
-    font-size: 11px; /* Base size, content overrides */
+    font-size: 11px;
+    /* Base size, content overrides */
     box-shadow: none;
     border-radius: 0;
     overflow: visible;
 }
 
 .vis-item .vis-item-content {
-    background-color: color-mix(in srgb, var(--bg-col), transparent 30%); /* 70% opacity */
-    padding: 1px 5px 0px 5px; /* Reduced padding */
-    font-size: 12px; /* Increased size */
+    background-color: color-mix(in srgb, var(--bg-col), transparent 10%);
+    /* 70% opacity */
+    padding: 1px 5px 0px 5px;
+    /* Reduced padding */
+    font-size: 12px;
+    /* Increased size */
     /* Ensure no default border */
     border: none;
 }
 
 
-.vis-group .vis-item.vis-range {
+.vis-item.vis-range {
     border: none;
+    border-bottom: 1.5px solid var(--p-col);
 }
 
 /* Ticks for Range Items (Start and End) */
@@ -257,11 +272,13 @@
 .vis-item.vis-range::after {
     content: '';
     position: absolute;
-    bottom: -2px; /* Align with bottom border */
+    bottom: -1px;
+    /* Align with bottom border */
     width: 2px;
     height: 5px;
     background-color: var(--p-col);
     display: block;
+    z-index: 1;
 }
 
 .vis-item.vis-range::before {
@@ -279,6 +296,7 @@
     /* For point, background might be needed or just a dot */
     background-color: transparent;
 }
+
 /* If point is a box, we can use bottom border too. */
 
 .vis-item.vis-selected {
