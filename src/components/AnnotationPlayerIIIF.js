@@ -20,7 +20,8 @@ class AnnotationPlayerIIIF extends HTMLElement {
             'annotation-properties-to-display',
             'can-add-annotation',
             'can-edit-all-annotation',
-            'can-update-annotation-for-author-name'
+            'can-update-annotation-for-author-name',
+            'colors'
         ];
     }
 
@@ -39,12 +40,13 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this._canAddAnnotation = true;
         this._canEditAllAnnotation = true;
         this._canUpdateAnnotationForAuthorName = null;
+        this._colors = ['#1890ff', '#333333', '#ffffff', '#eeeeee'];
 
         // Internal state
         this.player = null;
         this.timeline = null;
         this.items = new DataSet([]);
-        this.groups = new DataSet([{ id: 0, content: 'Annotations' }]);
+        // this.groups = new DataSet([{ id: 0, content: 'Annotations' }]); // No groups used
         this.clickTimeout = null;
         this.startClickTime = 0;
         this.startClickPos = { x: 0, y: 0 };
@@ -112,6 +114,17 @@ class AnnotationPlayerIIIF extends HTMLElement {
             case 'can-update-annotation-for-author-name':
                 this._canUpdateAnnotationForAuthorName = newValue;
                 break;
+            case 'colors':
+                try {
+                    const parsed = JSON.parse(newValue);
+                    if (Array.isArray(parsed) && parsed.length >= 1) {
+                        this._colors = parsed;
+                        this.updateColors();
+                    }
+                } catch (e) {
+                    console.warn('Invalid colors attribute');
+                }
+                break;
         }
     }
 
@@ -124,7 +137,16 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
     // ... (Implement other getters/setters as needed)
 
+    updateColors() {
+        const [primary, text, bg, border] = this._colors;
+        if (primary) this.style.setProperty('--p-col', primary);
+        if (text) this.style.setProperty('--t-col', text);
+        if (bg) this.style.setProperty('--bg-col', bg);
+        if (border) this.style.setProperty('--b-col', border);
+    }
+
     render() {
+        this.updateColors(); // Init colors
         this.innerHTML = `
             <div class="player-container">
                 <audio class="video-js vjs-default-skin"></audio>
@@ -255,7 +277,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
         const container = this.querySelector('.visualization');
         const options = {
             width: '100%',
-            height: '170px',
+            height: '140px',
             stack: true,
             showCurrentTime: true,
             start: 0,
@@ -327,7 +349,8 @@ class AnnotationPlayerIIIF extends HTMLElement {
             }
         };
 
-        this.timeline = new Timeline(container, this.items, this.groups, options);
+        // Do not pass groups to remove left column
+        this.timeline = new Timeline(container, this.items, options);
         this.timeline.addCustomTime(0, 'videoProgress');
 
         // Listen for item changes to update the list
@@ -477,7 +500,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
                 return {
                     id: item['@id'] || item.id || index + 1,
-                    group: 0,
+                    // group: 0, // No group
                     content: (item.body && item.body.label) ? item.body.label : (item.body && item.body.value ? item.body.value : ''),
                     value: (item.body && item.body.value) ? item.body.value : '',
                     label: (item.body && item.body.label) ? item.body.label : '',
@@ -773,7 +796,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
             item.content = title || text;
             item.start = newStart;
             item.type = type;
-            item.group = 0;
+            // item.group = 0; // No group
 
             if (type === 'range') {
                 const newEnd = parseFloat(endTimeInput.value) * 1000;

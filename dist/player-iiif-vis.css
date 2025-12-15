@@ -3293,6 +3293,13 @@ video::-webkit-media-text-track-display {
   outline: none;
 }
 
+:host {
+    --p-col: #1890ff; /* Primary */
+    --t-col: #333333; /* Text */
+    --bg-col: #ffffff; /* Background */
+    --b-col: #eeeeee; /* Border */
+}
+
 /* ensure progress control is on top of wavesurfer.js plugins */
 .vjs-wavesurfer .vjs-progress-control {
     z-index: 4;
@@ -3305,9 +3312,7 @@ video::-webkit-media-text-track-display {
     width: 100%;
     height: 100%;
     z-index: -1;
-    /* Behind items (usually z-index 10+) */
     pointer-events: none;
-    /* Allow clicks to pass through to timeline */
 }
 
 .vjs-default-skin.vjs-paused .vjs-control-bar {
@@ -3359,7 +3364,7 @@ video::-webkit-media-text-track-display {
 }
 
 .player-container .add-annotation-btn {
-    background: #1890ff;
+    background: var(--p-col);
     color: white;
     width: 32px;
     height: 32px;
@@ -3376,7 +3381,7 @@ video::-webkit-media-text-track-display {
 .player-container .annotation-search {
     flex-grow: 1;
     padding: 6px;
-    border: 1px solid #ddd;
+    border: 1px solid var(--b-col);
     border-radius: 4px;
     font-size: 0.9em;
 }
@@ -3394,7 +3399,7 @@ video::-webkit-media-text-track-display {
 /* Annotation Card Styles */
 .annotation-card {
     background: transparent;
-    border-bottom: 1px solid #eee;
+    border-bottom: 1px solid var(--b-col);
     padding: 8px 5px;
     margin-bottom: 0;
     border-radius: 0;
@@ -3413,9 +3418,10 @@ video::-webkit-media-text-track-display {
     background-color: #f9f9f9;
 }
 
+/* Active: use color-mix for nuanced background */
 .annotation-card.active {
-    background-color: #e6f7ff;
-    border-bottom-color: #1890ff;
+    background-color: color-mix(in srgb, var(--p-col), transparent 90%);
+    border-bottom-color: var(--p-col);
 }
 
 .annotation-card.pulse-effect {
@@ -3424,13 +3430,13 @@ video::-webkit-media-text-track-display {
 
 @keyframes pulse {
     0% {
-        box-shadow: 0 0 0 0 rgba(24, 144, 255, 0.4);
+        box-shadow: 0 0 0 0 color-mix(in srgb, var(--p-col), transparent 60%);
     }
     70% {
-        box-shadow: 0 0 0 10px rgba(24, 144, 255, 0);
+        box-shadow: 0 0 0 10px transparent;
     }
     100% {
-        box-shadow: 0 0 0 0 rgba(24, 144, 255, 0);
+        box-shadow: 0 0 0 0 transparent;
     }
 }
 
@@ -3439,7 +3445,7 @@ video::-webkit-media-text-track-display {
     top: 0;
     left: 0;
     height: 3px;
-    background-color: #1890ff;
+    background-color: var(--p-col);
     width: 0%;
     transition: width 0.2s linear;
 }
@@ -3455,7 +3461,7 @@ video::-webkit-media-text-track-display {
 
 .annotation-label {
     font-weight: bold;
-    color: #333;
+    color: var(--t-col);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -3476,7 +3482,7 @@ video::-webkit-media-text-track-display {
 /* White badge when active (blue background) */
 .annotation-card.active .annotation-time {
     background-color: white;
-    color: #1890ff;
+    color: var(--p-col);
 }
 
 /* Edit Button */
@@ -3497,7 +3503,7 @@ video::-webkit-media-text-track-display {
 }
 
 .edit-annotation-btn:hover {
-    color: #1890ff;
+    color: var(--p-col);
 }
 
 .annotation-body {
@@ -3515,20 +3521,55 @@ video::-webkit-media-text-track-display {
 }
 
 /* Timeline specific styles */
+/* General Item Style */
 .vis-item {
-    border-color: #1890ff;
-    background-color: #e6f7ff;
-    color: #333; /* Ensure text is readable */
+    background-color: transparent;
+    border: none;
+    border-bottom: 2px solid var(--p-col);
+    color: var(--p-col);
+    font-size: 11px;
+    box-shadow: none;
+    /* Reset radius if needed */
+    border-radius: 0;
+    /* Ensure content is visible */
+    overflow: visible;
 }
 
-.vis-item.point-annotation {
-    border-color: #1890ff;
-    background-color: #e6f7ff;
+/* Ticks for Range Items (Start and End) */
+/* We can use ::before and ::after on .vis-item.vis-range */
+.vis-item.vis-range::before,
+.vis-item.vis-range::after {
+    content: '';
+    position: absolute;
+    bottom: -2px; /* Align with bottom border */
+    width: 2px;
+    height: 5px;
+    background-color: var(--p-col);
+    display: block;
 }
+
+.vis-item.vis-range::before {
+    left: 0;
+}
+
+.vis-item.vis-range::after {
+    right: 0;
+}
+
+/* Point Annotation Style */
+/* For points, vis-timeline creates a dot usually. We might want to customize. */
+.vis-item.point-annotation {
+    border-color: var(--p-col);
+    /* For point, background might be needed or just a dot */
+    background-color: transparent;
+}
+/* If point is a box, we can use bottom border too. */
 
 .vis-item.vis-selected {
-    background-color: #bae7ff;
-    border-color: #1890ff;
+    /* Subtle highlight for selection */
+    background-color: color-mix(in srgb, var(--p-col), transparent 90%);
+    border-bottom-color: var(--p-col);
+    color: var(--p-col);
 }
 
 /* Timeline text size */
@@ -3538,7 +3579,10 @@ video::-webkit-media-text-track-display {
     color: #666;
 }
 
-
+/* Hide Left Panel if it appears */
+.vis-panel.vis-left {
+    display: none !important;
+}
 
 /* Modal */
 .modal-overlay {
@@ -3603,6 +3647,6 @@ video::-webkit-media-text-track-display {
 }
 
 .save-annotation {
-    background: #007bff;
+    background: var(--p-col);
     color: white;
 }
