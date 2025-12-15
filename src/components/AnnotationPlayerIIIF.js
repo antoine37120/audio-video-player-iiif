@@ -624,8 +624,13 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
             let html = `
                 <div class="annotation-header">
-                    <span class="annotation-time">${timeStr}</span>
                     <span class="annotation-label">${this.escapeHtml(item.label || item.content)}</span>
+                    <span class="annotation-time">${timeStr}</span>
+                    <button class="edit-annotation-btn" title="Edit">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="annotation-body">
                     ${this.escapeHtml(item.value)}
@@ -638,6 +643,24 @@ class AnnotationPlayerIIIF extends HTMLElement {
             `;
 
             div.innerHTML = html;
+
+            // Bind edit button
+            const editBtn = div.querySelector('.edit-annotation-btn');
+            if (editBtn) {
+                editBtn.onclick = (e) => {
+                    e.stopPropagation(); // Prevent seeking
+                    if (this.canEditItem(item)) {
+                        this.showAnnotationForm(item, (updatedItem) => {
+                            if (updatedItem) this.items.update(updatedItem);
+                        });
+                    }
+                };
+                // Hide if not editable
+                if (!this.canEditItem(item)) {
+                    editBtn.style.display = 'none';
+                }
+            }
+
             container.appendChild(div);
         });
     }
