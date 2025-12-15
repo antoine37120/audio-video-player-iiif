@@ -235,20 +235,30 @@
 .vis-item {
     background-color: transparent;
     border: none;
-    border-bottom: 2px solid var(--p-col);
+    /*border-bottom: 2px solid var(--p-col);*/
     color: var(--p-col);
-    font-size: 11px; /* Base size, content overrides */
+    font-size: 11px;
+    /* Base size, content overrides */
     box-shadow: none;
     border-radius: 0;
     overflow: visible;
 }
 
 .vis-item .vis-item-content {
-    background-color: color-mix(in srgb, var(--bg-col), transparent 30%); /* 70% opacity */
-    padding: 1px 5px 0px 5px; /* Reduced padding */
-    font-size: 12px; /* Increased size */
+    background-color: color-mix(in srgb, var(--bg-col), transparent 10%);
+    /* 70% opacity */
+    padding: 1px 5px 0px 5px;
+    /* Reduced padding */
+    font-size: 12px;
+    /* Increased size */
     /* Ensure no default border */
     border: none;
+}
+
+
+.vis-item.vis-range {
+    border: none;
+    border-bottom: 1.5px solid var(--p-col);
 }
 
 /* Ticks for Range Items (Start and End) */
@@ -257,11 +267,13 @@
 .vis-item.vis-range::after {
     content: '';
     position: absolute;
-    bottom: -2px; /* Align with bottom border */
+    bottom: -1px;
+    /* Align with bottom border */
     width: 2px;
     height: 5px;
     background-color: var(--p-col);
     display: block;
+    z-index: 1;
 }
 
 .vis-item.vis-range::before {
