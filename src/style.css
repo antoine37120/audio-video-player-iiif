@@ -246,6 +246,11 @@
     border: none;
 }
 
+
+.vis-group .vis-item.vis-range {
+    border: none;
+}
+
 /* Ticks for Range Items (Start and End) */
 /* We can use ::before and ::after on .vis-item.vis-range */
 .vis-item.vis-range::before,
