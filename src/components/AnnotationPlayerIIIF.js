@@ -352,6 +352,73 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 }
             }
         });
+
+        this.addNavigationControls(container);
+    }
+
+    addNavigationControls(container) {
+        const controls = document.createElement('div');
+        controls.className = 'timeline-navigation';
+        Object.assign(controls.style, {
+            position: 'absolute',
+            top: '5px',
+            right: '5px',
+            zIndex: '1000',
+            display: 'flex',
+            gap: '5px'
+        });
+
+        const btnStyle = {
+            width: '20px',
+            height: '20px',
+            background: 'white',
+            border: '1px solid #333',
+            color: '#333',
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '0',
+            fontSize: '14px',
+            borderRadius: '2px',
+            outline: 'none'
+        };
+
+        const createBtn = (icon, action, title) => {
+            const btn = document.createElement('button');
+            btn.innerHTML = icon;
+            btn.title = title;
+            Object.assign(btn.style, btnStyle);
+
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                e.preventDefault();
+                action();
+            };
+            return btn;
+        };
+
+        const move = (percentage) => {
+            if (!this.timeline) return;
+            const range = this.timeline.getWindow();
+            const interval = range.end - range.start;
+            const moveStep = interval * percentage;
+            this.timeline.setWindow({
+                start: range.start.valueOf() + moveStep,
+                end: range.end.valueOf() + moveStep,
+            });
+        };
+
+        controls.appendChild(createBtn('\u25C0', () => move(-0.5), 'Move Left'));
+        controls.appendChild(createBtn('\u25B6', () => move(0.5), 'Move Right'));
+        controls.appendChild(createBtn('+', () => this.timeline.zoomIn(0.5), 'Zoom In'));
+        controls.appendChild(createBtn('-', () => this.timeline.zoomOut(0.5), 'Zoom Out'));
+
+        if (getComputedStyle(container).position === 'static') {
+            container.style.position = 'relative';
+        }
+
+        container.appendChild(controls);
     }
 
     canEditItem(item) {

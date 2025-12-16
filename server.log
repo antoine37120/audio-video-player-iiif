@@ -1,5 +1,8 @@
-127.0.0.1 - - [14/Dec/2025 23:45:50] "GET /test_verification_list.html HTTP/1.1" 200 -
-127.0.0.1 - - [14/Dec/2025 23:45:50] "GET /dist/player-iiif-vis.js HTTP/1.1" 200 -
-127.0.0.1 - - [14/Dec/2025 23:45:50] "GET /dist/player-iiif-vis.css HTTP/1.1" 200 -
-127.0.0.1 - - [14/Dec/2025 23:45:50] "GET /dist/annotations2.json HTTP/1.1" 200 -
-127.0.0.1 - - [14/Dec/2025 23:45:50] "GET /dist/waveform.json HTTP/1.1" 200 -
+127.0.0.1 - - [16/Dec/2025 11:30:01] "GET /vis_timeline_demo.html HTTP/1.1" 200 -
+127.0.0.1 - - [16/Dec/2025 11:30:01] "GET /dist/player-iiif-vis.js HTTP/1.1" 200 -
+127.0.0.1 - - [16/Dec/2025 11:30:01] "GET /dist/player-iiif-vis.css HTTP/1.1" 200 -
+127.0.0.1 - - [16/Dec/2025 11:30:02] "GET /public/waveform.json HTTP/1.1" 200 -
+127.0.0.1 - - [16/Dec/2025 11:30:02] code 404, message File not found
+127.0.0.1 - - [16/Dec/2025 11:30:02] "GET /media/hal.mp3 HTTP/1.1" 404 -
+127.0.0.1 - - [16/Dec/2025 11:30:02] "GET /public/subtitles_en.vtt HTTP/1.1" 200 -
+127.0.0.1 - - [16/Dec/2025 11:30:02] "GET /public/subtitles_fr.vtt HTTP/1.1" 200 -
