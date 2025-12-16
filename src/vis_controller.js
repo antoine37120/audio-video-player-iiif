@@ -40,7 +40,7 @@ const player = videojs(videoElement, {
 // Initialize Timeline
 const options = {
     width: '100%',
-    height: '200px',
+    height: '140px',
     stack: true,
     showCurrentTime: true,
     start: 0, // Start at 0
@@ -181,7 +181,7 @@ timeline.on('doubleClick', (properties) => {
 
 var addButton = document.getElementById('add-annotation-btn');
 if (addButton) {
-    addButton.addEventListener('click', function() {
+    addButton.addEventListener('click', function () {
         var currentTime = player.currentTime() * 1000; // Temps actuel en ms
 
         var newItem = {
@@ -193,7 +193,7 @@ if (addButton) {
             type: 'point'
         };
 
-        showAnnotationForm(newItem, function(item) {
+        showAnnotationForm(newItem, function (item) {
             if (item) {
                 items.add(item);
             }
@@ -235,7 +235,7 @@ timeline.on('click', (properties) => {
     }
 
     // Attendre un peu avant d'exécuter le seek (pour laisser le double-clic l'annuler)
-    clickTimeout = setTimeout(function() {
+    clickTimeout = setTimeout(function () {
         clickTimeout = null;
         if (seekTime !== null) {
             console.log('Seeking to time!');
