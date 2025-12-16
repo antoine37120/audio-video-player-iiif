@@ -20,7 +20,8 @@ class AnnotationPlayerIIIF extends HTMLElement {
             'annotation-properties-to-display',
             'can-add-annotation',
             'can-edit-all-annotation',
-            'can-update-annotation-for-author-name'
+            'can-update-annotation-for-author-name',
+            'colors'
         ];
     }
 
@@ -32,19 +33,20 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this._mediaType = 'audio'; // Default from usage
         this._waveFormUrl = null;
         this._subtitleFilesUrl = null;
-        this._waveformStrokeColor = 'rgba(0, 0, 0, 0.48)';
+        this._waveformStrokeColor = 'rgba(0, 0, 0, 0.2)'; // Lighter for readability
         this._waveformStrokeWidth = 1;
         this._annotationMinTimeToDisplay = 15;
         this._annotationPropertiesToDisplay = ['time', 'text', 'author'];
         this._canAddAnnotation = true;
         this._canEditAllAnnotation = true;
         this._canUpdateAnnotationForAuthorName = null;
+        this._colors = ['#1890ff', '#333333', '#ffffff', '#eeeeee'];
 
         // Internal state
         this.player = null;
         this.timeline = null;
         this.items = new DataSet([]);
-        this.groups = new DataSet([{ id: 0, content: 'Annotations' }]);
+        // this.groups = new DataSet([{ id: 0, content: 'Annotations' }]); // No groups used
         this.clickTimeout = null;
         this.startClickTime = 0;
         this.startClickPos = { x: 0, y: 0 };
@@ -112,6 +114,17 @@ class AnnotationPlayerIIIF extends HTMLElement {
             case 'can-update-annotation-for-author-name':
                 this._canUpdateAnnotationForAuthorName = newValue;
                 break;
+            case 'colors':
+                try {
+                    const parsed = JSON.parse(newValue);
+                    if (Array.isArray(parsed) && parsed.length >= 1) {
+                        this._colors = parsed;
+                        this.updateColors();
+                    }
+                } catch (e) {
+                    console.warn('Invalid colors attribute');
+                }
+                break;
         }
     }
 
@@ -124,16 +137,25 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
     // ... (Implement other getters/setters as needed)
 
+    updateColors() {
+        const [primary, text, bg, border] = this._colors;
+        if (primary) this.style.setProperty('--p-col', primary);
+        if (text) this.style.setProperty('--t-col', text);
+        if (bg) this.style.setProperty('--bg-col', bg);
+        if (border) this.style.setProperty('--b-col', border);
+    }
+
     render() {
+        this.updateColors(); // Init colors
         this.innerHTML = `
             <div class="player-container">
                 <audio class="video-js vjs-default-skin"></audio>
                 <div class="visualization"></div>
                 <div class="controls">
-                    <button class="add-annotation-btn">
-                        + Ajouter une annotation
+                    <button class="add-annotation-btn" title="Ajouter une annotation">
+                        +
                     </button>
-                    <input type="text" class="annotation-search" placeholder="Rechercher une annotation...">
+                    <input type="text" class="annotation-search" placeholder="Rechercher...">
                 </div>
                 <div class="annotation-display"></div>
             </div>
@@ -255,7 +277,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
         const container = this.querySelector('.visualization');
         const options = {
             width: '100%',
-            height: '200px',
+            height: '140px',
             stack: true,
             showCurrentTime: true,
             start: 0,
@@ -327,7 +349,8 @@ class AnnotationPlayerIIIF extends HTMLElement {
             }
         };
 
-        this.timeline = new Timeline(container, this.items, this.groups, options);
+        // Do not pass groups to remove left column
+        this.timeline = new Timeline(container, this.items, options);
         this.timeline.addCustomTime(0, 'videoProgress');
 
         // Listen for item changes to update the list
@@ -544,7 +567,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
                 return {
                     id: item['@id'] || item.id || index + 1,
-                    group: 0,
+                    // group: 0, // No group
                     content: (item.body && item.body.label) ? item.body.label : (item.body && item.body.value ? item.body.value : ''),
                     value: (item.body && item.body.value) ? item.body.value : '',
                     label: (item.body && item.body.label) ? item.body.label : '',
@@ -691,8 +714,13 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
             let html = `
                 <div class="annotation-header">
-                    <span class="annotation-time">${timeStr}</span>
                     <span class="annotation-label">${this.escapeHtml(item.label || item.content)}</span>
+                    <span class="annotation-time">${timeStr}</span>
+                    <button class="edit-annotation-btn" title="Edit">
+                        <svg viewBox="0 0 24 24" width="12" height="12" fill="currentColor">
+                            <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+                        </svg>
+                    </button>
                 </div>
                 <div class="annotation-body">
                     ${this.escapeHtml(item.value)}
@@ -705,6 +733,24 @@ class AnnotationPlayerIIIF extends HTMLElement {
             `;
 
             div.innerHTML = html;
+
+            // Bind edit button
+            const editBtn = div.querySelector('.edit-annotation-btn');
+            if (editBtn) {
+                editBtn.onclick = (e) => {
+                    e.stopPropagation(); // Prevent seeking
+                    if (this.canEditItem(item)) {
+                        this.showAnnotationForm(item, (updatedItem) => {
+                            if (updatedItem) this.items.update(updatedItem);
+                        });
+                    }
+                };
+                // Hide if not editable
+                if (!this.canEditItem(item)) {
+                    editBtn.style.display = 'none';
+                }
+            }
+
             container.appendChild(div);
         });
     }
@@ -727,6 +773,14 @@ class AnnotationPlayerIIIF extends HTMLElement {
             if (item.type === 'point') end = start + 2000;
 
             const isActive = currentTime >= start && currentTime <= end;
+            const isPast = currentTime > end;
+
+            // Apply past class
+            if (isPast) {
+                div.classList.add('past');
+            } else {
+                div.classList.remove('past');
+            }
 
             if (isActive) {
                 div.classList.add('active');
@@ -771,12 +825,13 @@ class AnnotationPlayerIIIF extends HTMLElement {
         const saveBtn = this.querySelector('.save-annotation');
         const cancelBtn = this.querySelector('.cancel-annotation');
 
-        const start = item.start.getTime() / 1000;
+        const getTimestamp = (val) => (val instanceof Date) ? val.getTime() : val;
+        const start = getTimestamp(item.start) / 1000;
         startTimeInput.value = start;
 
         if (item.end) {
             typeSelect.value = 'range';
-            endTimeInput.value = item.end.getTime() / 1000;
+            endTimeInput.value = getTimestamp(item.end) / 1000;
             endTimeGroup.style.display = 'block';
         } else {
             typeSelect.value = 'point';
@@ -817,7 +872,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
             item.content = title || text;
             item.start = newStart;
             item.type = type;
-            item.group = 0;
+            // item.group = 0; // No group
 
             if (type === 'range') {
                 const newEnd = parseFloat(endTimeInput.value) * 1000;
