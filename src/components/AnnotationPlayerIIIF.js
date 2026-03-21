@@ -814,7 +814,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
             visPanel.insertBefore(canvas, visPanel.firstChild);
         }
 
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: true });
         const windowRange = this.timeline.getWindow();
         const start = windowRange.start.getTime();
         const end = windowRange.end.getTime();
@@ -830,6 +830,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
         }
 
         ctx.clearRect(0, 0, width, height);
+
         ctx.beginPath();
         ctx.strokeStyle = this._waveformStrokeColor || 'rgba(0, 0, 0, 0.2)';
         ctx.lineWidth = this._waveformStrokeWidth || 1;

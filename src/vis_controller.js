@@ -448,6 +448,14 @@ function renderWaveform(waveformData) {
         }
 
         ctx.clearRect(0, 0, width, height);
+
+        // Ensure background is transparent
+        ctx.save();
+        ctx.globalCompositeOperation = 'destination-over';
+        ctx.fillStyle = 'rgba(0,0,0,0)';
+        ctx.fillRect(0, 0, width, height);
+        ctx.restore();
+
         ctx.beginPath();
         ctx.strokeStyle = 'rgba(0, 0, 0, 0.48)';
         ctx.lineWidth = 1;
