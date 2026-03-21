@@ -21,7 +21,12 @@ class AnnotationPlayerIIIF extends HTMLElement {
             'can-add-annotation',
             'can-edit-all-annotation',
             'can-update-annotation-for-author-name',
-            'colors'
+            'colors',
+            'iiif-permissions-path',
+            'permissions-map',
+            'permission-error-selector',
+            'api-base-url',
+            'resource-id'
         ];
     }
 
@@ -41,6 +46,12 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this._canEditAllAnnotation = true;
         this._canUpdateAnnotationForAuthorName = null;
         this._colors = ['#1890ff', '#333333', '#ffffff', '#eeeeee'];
+        this._iiifPermissionsPath = 'omeka:permissions';
+        this._permissionsMap = 'add:create,edit:edit,delete:delete';
+        this._permissionErrorSelector = null;
+        this._errorTimeout = null;
+        this._apiBaseUrl = null;
+        this._resourceId = null;
 
         // Internal state
         this.player = null;
@@ -125,6 +136,21 @@ class AnnotationPlayerIIIF extends HTMLElement {
                     console.warn('Invalid colors attribute');
                 }
                 break;
+            case 'iiif-permissions-path':
+                this._iiifPermissionsPath = newValue;
+                break;
+            case 'permissions-map':
+                this._permissionsMap = newValue;
+                break;
+            case 'permission-error-selector':
+                this._permissionErrorSelector = newValue;
+                break;
+            case 'api-base-url':
+                this._apiBaseUrl = newValue;
+                break;
+            case 'resource-id':
+                this._resourceId = newValue;
+                break;
         }
     }
 
@@ -158,6 +184,12 @@ class AnnotationPlayerIIIF extends HTMLElement {
                     <input type="text" class="annotation-search" placeholder="Rechercher...">
                 </div>
                 <div class="annotation-display"></div>
+
+                <!-- Popup d'erreur de permission -->
+                <div class="permission-error-popup" style="display: none;">
+                    <div class="error-content"></div>
+                    <button class="close-error-btn">&times;</button>
+                </div>
             </div>
 
             <!-- Modal -->
@@ -197,6 +229,107 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
         this.updateUI();
         this.bindEvents();
+
+        // Ajout du listener pour fermer la popup
+        const closeBtn = this.querySelector('.close-error-btn');
+        if (closeBtn) {
+            closeBtn.onclick = () => this.showPermissionError(false);
+        }
+    }
+
+    showPermissionError(show, customMessage = null) {
+        const popup = this.querySelector('.permission-error-popup');
+        const content = this.querySelector('.error-content');
+
+        if (!popup || !content) return;
+
+        if (show) {
+            let message = customMessage;
+
+            // Si pas de message spécifique passé, on cherche via le sélecteur
+            if (!message && this._permissionErrorSelector) {
+                const sourceElement = document.querySelector(this._permissionErrorSelector);
+                if (sourceElement) {
+                    message = sourceElement.innerHTML;
+                }
+            }
+
+            // Fallback si rien n'est trouvé
+            message = message || "Vous n'avez pas l'autorisation d'effectuer cette action.";
+
+            content.innerHTML = message;
+            popup.style.display = 'flex';
+
+            // Auto-fermeture après 5 secondes
+            if (this._errorTimeout) clearTimeout(this._errorTimeout);
+            this._errorTimeout = setTimeout(() => this.showPermissionError(false), 5000);
+        } else {
+            popup.style.display = 'none';
+        }
+    }
+
+    async _apiCall(action, id = null, data = null) {
+        if (!this._apiBaseUrl) {
+            console.error('API Base URL is not defined');
+            return null;
+        }
+
+        let url = this._apiBaseUrl;
+        let method = 'POST';
+
+        switch (action) {
+            case 'list':
+                url += '';
+                method = 'GET';
+                break;
+            case 'get':
+                url += `/get/${id}`;
+                method = 'GET';
+                break;
+            case 'create':
+                url += '/create';
+                method = 'POST';
+                break;
+            case 'update':
+                url += `/update/${id}`;
+                method = 'POST'; // Specification says PUT/POST
+                break;
+            case 'delete':
+                url += `/delete/${id}`;
+                method = 'POST'; // Specification says DELETE/POST
+                break;
+            case 'iiif':
+                url += `/iiif/${id}`;
+                method = 'GET';
+                break;
+            default:
+                console.error(`Unknown API action: ${action}`);
+                return null;
+        }
+
+        const options = {
+            method: method,
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        };
+
+        if (data && (method === 'POST' || method === 'PUT')) {
+            options.body = JSON.stringify(data);
+        }
+
+        try {
+            const response = await fetch(url, options);
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.message || `HTTP error! status: ${response.status}`);
+            }
+            return await response.json();
+        } catch (error) {
+            console.error('API Call failed:', error);
+            this.showPermissionError(true, `Erreur lors de la communication avec l'API : ${error.message}`);
+            return null;
+        }
     }
 
     updateUI() {
@@ -323,27 +456,54 @@ class AnnotationPlayerIIIF extends HTMLElement {
                     year: ''
                 }
             },
-            onAdd: (item, callback) => {
+            onAdd: async (item, callback) => {
                 this.showAnnotationForm(item, callback);
             },
-            onMove: (item, callback) => {
-                if (this.canEditItem(item)) {
-                    callback(item);
+            onMove: async (item, callback) => {
+                if (this.canEditItem(item, 'edit')) {
+                    if (this._apiBaseUrl) {
+                        const data = {
+                            time: (item.start instanceof Date ? item.start.getTime() : item.start) / 1000,
+                            title: item.content
+                        };
+                        const result = await this._apiCall('update', item.id, data);
+                        if (result) {
+                            const processed = this._processIIIFItem(result);
+                            this.items.update(processed); // Force update in DataSet
+                            callback(processed);
+                        } else {
+                            callback(null);
+                        }
+                    } else {
+                        callback(item);
+                    }
                 } else {
+                    this.showPermissionError(true);
                     callback(null); // Cancel move
                 }
             },
-            onRemove: (item, callback) => {
-                if (this.canEditItem(item)) {
-                    callback(item);
+            onRemove: async (item, callback) => {
+                if (this.canEditItem(item, 'delete')) {
+                    if (this._apiBaseUrl) {
+                        const result = await this._apiCall('delete', item.id);
+                        if (result && result.status === 'deleted') {
+                            callback(item);
+                        } else {
+                            callback(null);
+                        }
+                    } else {
+                        callback(item);
+                    }
                 } else {
+                    this.showPermissionError(true);
                     callback(null);
                 }
             },
-            onUpdate: (item, callback) => {
-                if (this.canEditItem(item)) {
+            onUpdate: async (item, callback) => {
+                if (this.canEditItem(item, 'edit')) {
                     this.showAnnotationForm(item, callback);
                 } else {
+                    this.showPermissionError(true);
                     callback(null);
                 }
             }
@@ -368,10 +528,12 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this.timeline.on('doubleClick', (props) => {
             if (props.item) {
                 const item = this.items.get(props.item);
-                if (this.canEditItem(item)) {
+                if (this.canEditItem(item, 'edit')) {
                     this.showAnnotationForm(item, (updatedItem) => {
                         if (updatedItem) this.items.update(updatedItem);
                     });
+                } else {
+                    this.showPermissionError(true);
                 }
             }
         });
@@ -444,9 +606,26 @@ class AnnotationPlayerIIIF extends HTMLElement {
         container.appendChild(controls);
     }
 
-    canEditItem(item) {
+    canEditItem(item, action = 'edit') {
+        // 1. Priorité aux réglages globaux "admin"
         if (this._canEditAllAnnotation) return true;
-        if (this._canUpdateAnnotationForAuthorName && item.author === this._canUpdateAnnotationForAuthorName) return true;
+
+        // 2. Vérification par nom d'auteur (legacy)
+        if (this._canUpdateAnnotationForAuthorName && item && item.author === this._canUpdateAnnotationForAuthorName) return true;
+
+        // 3. Vérification de la map des permissions IIIF
+        const mapStr = this._permissionsMap || 'add:create,edit:edit,delete:delete';
+        const map = Object.fromEntries(mapStr.split(',').map(s => s.split(':')));
+        const permissionKey = map[action];
+
+        // 4. Vérification des droits de l'item extraits du IIIF
+        if (item && item.permissions && permissionKey) {
+            return item.permissions[permissionKey] === true;
+        }
+
+        // 5. Fallback sur les anciens attributs (ex: can-add-annotation)
+        if (action === 'add') return this._canAddAnnotation;
+
         return false;
     }
 
@@ -491,6 +670,12 @@ class AnnotationPlayerIIIF extends HTMLElement {
         if (addBtn) {
             addBtn.addEventListener('click', () => {
                 if (!this.player) return;
+
+                if (!this.canEditItem(null, 'add')) {
+                    this.showPermissionError(true);
+                    return;
+                }
+
                 const currentTime = this.player.currentTime() * 1000;
                 const newItem = {
                     id: new Date().getTime(),
@@ -525,64 +710,70 @@ class AnnotationPlayerIIIF extends HTMLElement {
         }
     }
 
+    _processIIIFItem(item, index = 0) {
+        const target = item.target || item.on;
+        // Handle different target structures (string or object)
+        const targetStr = typeof target === 'string' ? target : (target && target.id ? target.id : '');
+        const timeMatch = targetStr.match(/t=([\d\.]+)(,([\d\.]+))?/);
+
+        let start = 0;
+        let end = null;
+        let type = 'point';
+
+        if (timeMatch) {
+            start = parseFloat(timeMatch[1]) * 1000;
+            // Check if there is an end time and if it is greater than start (and > 0)
+            if (timeMatch[3]) {
+                const parsedEnd = parseFloat(timeMatch[3]) * 1000;
+                if (parsedEnd > start && parsedEnd > 0) {
+                    end = parsedEnd;
+                    type = 'range';
+                }
+            }
+        }
+
+        // Extract Creator
+        let creatorName = '';
+        if (item.creator) {
+            if (item.creator.label && item.creator.label.none) {
+                creatorName = Array.isArray(item.creator.label.none) ? item.creator.label.none.join(', ') : item.creator.label.none;
+            } else if (item.creator.name) {
+                creatorName = item.creator.name;
+            } else if (item.creator.id) {
+                creatorName = item.creator.id;
+            }
+        }
+
+        // Extract permissions
+        const permissionsPath = this._iiifPermissionsPath || 'omeka:permissions';
+        const itemPermissions = item[permissionsPath] || {};
+
+        return {
+            id: item['@id'] || item.id || index + 1,
+            // group: 0, // No group
+            content: (item.body && item.body.label) ? item.body.label : (item.body && item.body.value ? item.body.value : ''),
+            value: (item.body && item.body.value) ? item.body.value : '',
+            label: (item.body && item.body.label) ? item.body.label : '',
+            start: start,
+            end: end,
+            type: type,
+            author: creatorName,
+            created: item.created || '',
+            permissions: itemPermissions // Stockage des droits spécifiques à l'item
+        };
+    }
+
     async loadIIIFAnnotations(url) {
         try {
             const response = await fetch(url);
             const data = await response.json();
             let parsedItems = [];
 
-            const processItem = (item, index) => {
-                const target = item.target || item.on;
-                // Handle different target structures (string or object)
-                const targetStr = typeof target === 'string' ? target : (target.id || '');
-                const timeMatch = targetStr.match(/t=([\d\.]+)(,([\d\.]+))?/);
-
-                let start = 0;
-                let end = null;
-                let type = 'point';
-
-                if (timeMatch) {
-                    start = parseFloat(timeMatch[1]) * 1000;
-                    // Check if there is an end time and if it is greater than start (and > 0)
-                    if (timeMatch[3]) {
-                        const parsedEnd = parseFloat(timeMatch[3]) * 1000;
-                        if (parsedEnd > start && parsedEnd > 0) {
-                            end = parsedEnd;
-                            type = 'range';
-                        }
-                    }
-                }
-
-                // Extract Creator
-                let creatorName = '';
-                if (item.creator) {
-                    if (item.creator.label && item.creator.label.none) {
-                        creatorName = Array.isArray(item.creator.label.none) ? item.creator.label.none.join(', ') : item.creator.label.none;
-                    } else if (item.creator.name) {
-                        creatorName = item.creator.name;
-                    } else if (item.creator.id) {
-                        creatorName = item.creator.id;
-                    }
-                }
-
-                return {
-                    id: item['@id'] || item.id || index + 1,
-                    // group: 0, // No group
-                    content: (item.body && item.body.label) ? item.body.label : (item.body && item.body.value ? item.body.value : ''),
-                    value: (item.body && item.body.value) ? item.body.value : '',
-                    label: (item.body && item.body.label) ? item.body.label : '',
-                    start: start,
-                    end: end,
-                    type: type,
-                    author: creatorName,
-                    created: item.created || ''
-                };
-            };
-
             if (data['@type'] === 'sc:AnnotationList' && data.resources) {
-                parsedItems = data.resources.map(processItem);
+                parsedItems = data.resources.map((item, index) => this._processIIIFItem(item, index));
             } else if (data.items || (data.type === 'AnnotationPage' && data.items)) {
-                parsedItems = data.items.map(processItem);
+                const itemsToProcess = data.items || (data.type === 'AnnotationPage' ? data.items : []);
+                parsedItems = itemsToProcess.map((item, index) => this._processIIIFItem(item, index));
             }
 
             this.items.clear();
@@ -627,18 +818,21 @@ class AnnotationPlayerIIIF extends HTMLElement {
         const windowRange = this.timeline.getWindow();
         const start = windowRange.start.getTime();
         const end = windowRange.end.getTime();
-        const width = visPanel.offsetWidth;
-        const height = visPanel.offsetHeight;
+        const width = Math.floor(visPanel.offsetWidth);
+        const height = Math.floor(visPanel.offsetHeight);
+
+        if (width <= 0 || height <= 0) return;
 
         if (canvas.width !== width || canvas.height !== height) {
             canvas.width = width;
             canvas.height = height;
+            // On some browsers, setting width/height clears the context and its properties
         }
 
         ctx.clearRect(0, 0, width, height);
         ctx.beginPath();
-        ctx.strokeStyle = this._waveformStrokeColor;
-        ctx.lineWidth = this._waveformStrokeWidth;
+        ctx.strokeStyle = this._waveformStrokeColor || 'rgba(0, 0, 0, 0.2)';
+        ctx.lineWidth = this._waveformStrokeWidth || 1;
 
         const secondsPerPoint = this.waveformData.samples_per_pixel / this.waveformData.sample_rate;
         const startIndex = Math.floor((start / 1000) / secondsPerPoint);
@@ -682,10 +876,14 @@ class AnnotationPlayerIIIF extends HTMLElement {
         // Sort by start time
         allAnnotations.sort((a, b) => a.start - b.start);
 
-        // Check if we need to re-render (e.g. items changed count or search changed)
-        if (display.children.length !== allAnnotations.length || display.dataset.lastSearch !== searchTerm) {
+        // Check if we need to re-render (e.g. items changed count or search changed or order changed)
+        const currentOrder = allAnnotations.map(a => a.id).join(',');
+        const orderChanged = display.dataset.lastOrder !== currentOrder;
+
+        if (display.children.length !== allAnnotations.length || display.dataset.lastSearch !== searchTerm || orderChanged) {
             this.renderAnnotationList(display, allAnnotations);
             display.dataset.lastSearch = searchTerm;
+            display.dataset.lastOrder = currentOrder;
         }
 
         this.updateActiveAnnotations(display, allAnnotations, currentTime);
@@ -739,14 +937,16 @@ class AnnotationPlayerIIIF extends HTMLElement {
             if (editBtn) {
                 editBtn.onclick = (e) => {
                     e.stopPropagation(); // Prevent seeking
-                    if (this.canEditItem(item)) {
+                    if (this.canEditItem(item, 'edit')) {
                         this.showAnnotationForm(item, (updatedItem) => {
                             if (updatedItem) this.items.update(updatedItem);
                         });
+                    } else {
+                        this.showPermissionError(true);
                     }
                 };
                 // Hide if not editable
-                if (!this.canEditItem(item)) {
+                if (!this.canEditItem(item, 'edit')) {
                     editBtn.style.display = 'none';
                 }
             }
@@ -802,7 +1002,23 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
                 // Scroll to view if not hovering and first active found
                 if (!activeFound && !isHovering) {
-                    div.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    const container = this.querySelector('.annotation-display');
+                    if (container) {
+                        const containerRect = container.getBoundingClientRect();
+                        const itemRect = div.getBoundingClientRect();
+
+                        // Only scroll if the item is not fully visible in the container
+                        // We add a small buffer (1px) to avoid rounding issues
+                        const isFullyVisible = (itemRect.top >= (containerRect.top - 1) && itemRect.bottom <= (containerRect.bottom + 1));
+
+                        if (!isFullyVisible) {
+                            const scrollTop = div.offsetTop - container.offsetTop - (container.clientHeight / 2) + (div.clientHeight / 2);
+                            container.scrollTo({
+                                top: scrollTop,
+                                behavior: 'smooth'
+                            });
+                        }
+                    }
                     activeFound = true;
                 }
 
@@ -861,18 +1077,19 @@ class AnnotationPlayerIIIF extends HTMLElement {
         const newCancelBtn = cancelBtn.cloneNode(true);
         cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
-        newSaveBtn.onclick = () => {
+        newSaveBtn.onclick = async () => {
             const type = typeSelect.value;
             const newStart = parseFloat(startTimeInput.value) * 1000;
             const title = titleInput.value;
             const text = textInput.value;
 
-            item.label = title;
-            item.value = text;
-            item.content = title || text;
-            item.start = newStart;
-            item.type = type;
-            // item.group = 0; // No group
+            // Prepare data for API
+            const apiData = {
+                resource_id: this._resourceId,
+                time: newStart / 1000,
+                title: title,
+                text: text
+            };
 
             if (type === 'range') {
                 const newEnd = parseFloat(endTimeInput.value) * 1000;
@@ -880,13 +1097,56 @@ class AnnotationPlayerIIIF extends HTMLElement {
                     alert('Invalid End Time');
                     return;
                 }
-                item.end = newEnd;
-            } else {
-                item.end = null;
+                apiData.end_time = newEnd / 1000;
             }
 
-            callback(item);
-            modal.style.display = 'none';
+            if (this._apiBaseUrl) {
+                // Determine if it's an update or create
+                // We check if item.id is a "real" ID (from API) or a temporary one
+                // Usually temporary IDs are large numbers from Date().getTime()
+                // Let's assume if it was loaded from IIIF it has a string ID or small numeric ID
+                // For this implementation, let's use a simple heuristic: if it's a new item (from onAdd)
+                // it might not have the properties from _processIIIFItem yet.
+                
+                // Better: check if the item already exists in the DataSet
+                const existingItem = this.items.get(item.id);
+                const isNew = !existingItem || String(item.id).length > 12; // Simple heuristic for timestamp ID
+
+                if (isNew) {
+                    const result = await this._apiCall('create', null, apiData);
+                    if (result) {
+                        const processed = this._processIIIFItem(result);
+                        // If there was a temporary item in the DataSet, remove it
+                        if (existingItem) {
+                            this.items.remove(item.id);
+                        }
+                        callback(processed);
+                        modal.style.display = 'none';
+                    }
+                } else {
+                    const result = await this._apiCall('update', item.id, apiData);
+                    if (result) {
+                        const processed = this._processIIIFItem(result);
+                        callback(processed);
+                        modal.style.display = 'none';
+                    }
+                }
+                // If result is null, _apiCall already showed an error, we stay in the modal
+            } else {
+                // No API, local update only
+                item.label = title;
+                item.value = text;
+                item.content = title || text;
+                item.start = newStart;
+                item.type = type;
+                if (type === 'range') {
+                    item.end = parseFloat(endTimeInput.value) * 1000;
+                } else {
+                    item.end = null;
+                }
+                callback(item);
+                modal.style.display = 'none';
+            }
         };
 
         newCancelBtn.onclick = () => {

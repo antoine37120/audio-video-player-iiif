@@ -119,6 +119,38 @@
     border-bottom: none;
 }
 
+/* Styles pour la popup d'erreur de permission */
+.permission-error-popup {
+    position: absolute;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #ff4d4f;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 4px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    max-width: 80%;
+}
+
+.permission-error-popup .error-content {
+    flex: 1;
+}
+
+.permission-error-popup .close-error-btn {
+    background: transparent;
+    border: none;
+    color: white;
+    font-size: 20px;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+}
+
 .annotation-card:hover {
     background-color: #f9f9f9;
 }

@@ -437,8 +437,10 @@ function renderWaveform(waveformData) {
         const start = windowRange.start.getTime();
         const end = windowRange.end.getTime();
 
-        const width = visPanel.offsetWidth;
-        const height = visPanel.offsetHeight;
+        const width = Math.floor(visPanel.offsetWidth);
+        const height = Math.floor(visPanel.offsetHeight);
+
+        if (width <= 0 || height <= 0) return;
 
         if (canvas.width !== width || canvas.height !== height) {
             canvas.width = width;
