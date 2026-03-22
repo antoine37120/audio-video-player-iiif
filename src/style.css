@@ -73,7 +73,8 @@
     gap: 5px;
 }
 
-.player-container .add-annotation-btn {
+.player-container .add-annotation-btn,
+.player-container .share-btn {
     background: var(--p-col);
     color: white;
     width: 32px;
@@ -82,10 +83,16 @@
     border: none;
     border-radius: 4px;
     cursor: pointer;
-    display: none;
     font-size: 20px;
     line-height: 1;
     text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.player-container .add-annotation-btn {
+    display: none;
 }
 
 .player-container .annotation-search {
@@ -122,6 +129,58 @@
 
 .annotation-card:last-child {
     border-bottom: none;
+}
+
+/* Mode Iframe / Embedded */
+.player-container.is-embedded {
+    height: 100vh; /* Prend toute la hauteur disponible dans l'iframe */
+    overflow-y: auto; /* Active le scroll global interne */
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* On s'assure que les éléments ne sont pas écrasés */
+.player-container.is-embedded .visualization {
+    flex-shrink: 0;
+    min-height: 140px;
+}
+
+.player-container.is-embedded .video-js {
+    flex-shrink: 0;
+}
+
+.player-container.is-embedded .annotation-display {
+    flex-grow: 1;
+    max-height: none; /* Let it grow in embedded mode */
+    min-height: 300px; /* Minimum height for annotations */
+}
+
+/* Modal Share */
+.modal-share {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.player-container.is-embedded ~ .modal-share,
+.player-container.is-embedded ~ .modal-overlay {
+    position: absolute;
+    height: 100vh;
+    z-index: 2000;
+    box-sizing: border-box;
+}
+
+.player-container.is-embedded ~ .modal-overlay .annotation-form {
+    height: 100%;
+    overflow-y: auto; /* Active le scroll global interne */
+    box-sizing: border-box;
 }
 
 /* Styles pour la popup d'erreur de permission */

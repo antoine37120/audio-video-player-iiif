@@ -33,16 +33,23 @@
             <p style="margin: 0;"><strong>Accès refusé !</strong> Vous ne possédez pas les droits nécessaires pour effectuer cette action sur cette annotation.</p>
         </div>
 
-        <annotation-player-iiif iiif-annotation-list-url="dist/annotations2.json"
-            media-url="media/hal.mp3" media-type="audio" wave-form-url="public/waveform.json"
-            waveform-stroke-color="rgba(0, 0, 0, 0.18)" waveform-stroke-width="1" annotation-min-time-to-display="15"
-            annotation-properties-to-display="time,text,creator.id" can-add-annotation="false"
-            can-edit-all-annotation="false"
+        <annotation-player-iiif
+            iiif-annotation-list-url="dist/annotations2.json"
+            media-url="media/hal.mp3"
+            media-type="audio"
+            wave-form-url="public/waveform.json"
+            waveform-stroke-color="rgba(0, 0, 0, 0.18)"
+            waveform-stroke-width="1"
+            annotation-min-time-to-display="15"
+            annotation-properties-to-display="time,text,creator.id"
+            can-add-annotation="true"
+            can-edit-all-annotation="true"
             iiif-permissions-path="omeka:permissions"
             permissions-map="add:create,edit:edit,delete:delete"
-            permission-error-selector="#perm-error-msg"
             api-base-url="https://omekas.localhost/s/demo/audio-player/annotation"
             resource-id="123"
+            force-embedded-mode="false"
+            share-iframe-url="iframe_demo.html"
             subtitle-files-url='[{"url": "public/subtitles_en.vtt", "language": "en", "label": "English"}, {"url": "public/subtitles_fr.vtt", "language": "fr", "label": "Français"}]'></annotation-player-iiif>
     </div>
 

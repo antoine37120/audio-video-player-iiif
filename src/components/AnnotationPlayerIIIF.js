@@ -26,7 +26,9 @@ class AnnotationPlayerIIIF extends HTMLElement {
             'permissions-map',
             'permission-error-selector',
             'api-base-url',
-            'resource-id'
+            'resource-id',
+            'share-iframe-url',
+            'force-embedded-mode'
         ];
     }
 
@@ -52,8 +54,13 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this._errorTimeout = null;
         this._apiBaseUrl = null;
         this._resourceId = null;
+        this._shareIframeUrl = null;
+        this._forceEmbeddedMode = false;
 
         // Internal state
+        this.isEmbedded = false;
+        this._checkEmbeddedStatus();
+
         this.player = null;
         this.timeline = null;
         this.items = new DataSet([]);
@@ -151,7 +158,20 @@ class AnnotationPlayerIIIF extends HTMLElement {
             case 'resource-id':
                 this._resourceId = newValue;
                 break;
+            case 'force-embedded-mode':
+                this._forceEmbeddedMode = newValue !== 'false';
+                this._checkEmbeddedStatus();
+                this.render(); // Re-render pour appliquer les classes CSS
+                break;
+            case 'share-iframe-url':
+                this._shareIframeUrl = newValue;
+                this.render();
+                break;
         }
+    }
+
+    _checkEmbeddedStatus() {
+        this.isEmbedded = (window.self !== window.top) || this._forceEmbeddedMode;
     }
 
     // Getters and Setters for properties to sync with attributes
@@ -160,6 +180,12 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
     get mediaUrl() { return this._mediaUrl; }
     set mediaUrl(val) { this.setAttribute('media-url', val); }
+
+    get shareIframeUrl() { return this._shareIframeUrl; }
+    set shareIframeUrl(val) { this.setAttribute('share-iframe-url', val); }
+
+    get forceEmbeddedMode() { return this._forceEmbeddedMode; }
+    set forceEmbeddedMode(val) { this.setAttribute('force-embedded-mode', val ? 'true' : 'false'); }
 
     // ... (Implement other getters/setters as needed)
 
@@ -173,8 +199,10 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
     render() {
         this.updateColors(); // Init colors
+        const containerClass = this.isEmbedded ? 'player-container is-embedded' : 'player-container';
+
         this.innerHTML = `
-            <div class="player-container">
+            <div class="${containerClass}">
                 <audio class="video-js vjs-default-skin"></audio>
                 <div class="visualization"></div>
                 <div class="controls">
@@ -182,6 +210,13 @@ class AnnotationPlayerIIIF extends HTMLElement {
                         +
                     </button>
                     <input type="text" class="annotation-search" placeholder="Rechercher...">
+                    ${this._shareIframeUrl ? `
+                    <button class="share-btn" title="Générer le code d'intégration">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/>
+                        </svg>
+                    </button>
+                    ` : ''}
                 </div>
                 <div class="annotation-display"></div>
 
@@ -222,6 +257,18 @@ class AnnotationPlayerIIIF extends HTMLElement {
                     <div class="form-actions">
                         <button class="cancel-annotation">Cancel</button>
                         <button class="save-annotation">Save</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Modal Share -->
+            <div class="modal-share" style="display:none;">
+                <div class="annotation-form">
+                    <h3>Code d'intégration</h3>
+                    <textarea class="share-code" readonly style="width:100%; min-height:80px; margin-bottom:10px; font-family:monospace; font-size:12px;"></textarea>
+                    <div class="form-actions">
+                        <button class="close-share">Fermer</button>
+                        <button class="copy-share" style="background:var(--p-col); color:white;">Copier</button>
                     </div>
                 </div>
             </div>
@@ -707,6 +754,31 @@ class AnnotationPlayerIIIF extends HTMLElement {
             });
         }
 
+        const shareBtn = this.querySelector('.share-btn');
+        if (shareBtn) {
+            shareBtn.addEventListener('click', () => this.showShareModal());
+        }
+
+        const closeShareBtn = this.querySelector('.close-share');
+        if (closeShareBtn) {
+            closeShareBtn.onclick = () => {
+                this.querySelector('.modal-share').style.display = 'none';
+            };
+        }
+
+        const copyShareBtn = this.querySelector('.copy-share');
+        if (copyShareBtn) {
+            copyShareBtn.onclick = () => {
+                const textarea = this.querySelector('.share-code');
+                textarea.select();
+                document.execCommand('copy');
+                copyShareBtn.innerText = 'Copié !';
+                setTimeout(() => {
+                    copyShareBtn.innerText = 'Copier';
+                }, 2000);
+            };
+        }
+
         const searchInput = this.querySelector('.annotation-search');
         if (searchInput) {
             searchInput.addEventListener('input', () => {
@@ -1172,6 +1244,15 @@ class AnnotationPlayerIIIF extends HTMLElement {
             callback(null);
             modal.style.display = 'none';
         };
+    }
+
+    showShareModal() {
+        const textarea = this.querySelector('.share-code');
+        const url = this._shareIframeUrl || window.location.href;
+        // On utilise les dimensions historiques par défaut
+        const code = `<iframe width='362' height='215' frameborder='0' scrolling='no' src='${url}'></iframe>`;
+        textarea.value = code;
+        this.querySelector('.modal-share').style.display = 'flex';
     }
 
     formatTime(seconds) {

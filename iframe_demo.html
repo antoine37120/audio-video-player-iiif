@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Annotation Player IIIF - Iframe Mode</title>
+    <link rel="stylesheet" href="dist/player-iiif-vis.css">
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <annotation-player-iiif 
+        iiif-annotation-list-url="dist/annotations2.json"
+        media-url="media/hal.mp3" 
+        media-type="audio" 
+        wave-form-url="public/waveform.json"
+        waveform-stroke-color="rgba(0, 0, 0, 0.18)" 
+        waveform-stroke-width="1" 
+        annotation-min-time-to-display="15"
+        annotation-properties-to-display="time,text,creator.id" 
+        can-add-annotation="true"
+        can-edit-all-annotation="true"
+        iiif-permissions-path="omeka:permissions"
+        permissions-map="add:create,edit:edit,delete:delete"
+        api-base-url="https://omekas.localhost/s/demo/audio-player/annotation"
+        resource-id="123"
+        force-embedded-mode="true"
+        share-iframe-url="iframe_demo.html"
+        subtitle-files-url='[{"url": "public/subtitles_en.vtt", "language": "en", "label": "English"}, {"url": "public/subtitles_fr.vtt", "language": "fr", "label": "Français"}]'>
+    </annotation-player-iiif>
+
+    <script type="module" src="dist/player-iiif-vis.js"></script>
+</body>
+</html>
