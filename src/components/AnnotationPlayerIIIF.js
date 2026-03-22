@@ -457,7 +457,15 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 }
             },
             onAdd: async (item, callback) => {
-                this.showAnnotationForm(item, callback);
+                item.isNew = true;
+                this.showAnnotationForm(item, (newItem) => {
+                    if (newItem) {
+                        this.items.add(newItem);
+                        callback(newItem);
+                    } else {
+                        callback(null);
+                    }
+                });
             },
             onMove: async (item, callback) => {
                 if (this.canEditItem(item, 'edit')) {
@@ -501,7 +509,14 @@ class AnnotationPlayerIIIF extends HTMLElement {
             },
             onUpdate: async (item, callback) => {
                 if (this.canEditItem(item, 'edit')) {
-                    this.showAnnotationForm(item, callback);
+                    this.showAnnotationForm(item, (updatedItem) => {
+                        if (updatedItem) {
+                            this.items.update(updatedItem);
+                            callback(updatedItem);
+                        } else {
+                            callback(null);
+                        }
+                    });
                 } else {
                     this.showPermissionError(true);
                     callback(null);
@@ -683,7 +698,8 @@ class AnnotationPlayerIIIF extends HTMLElement {
                     end: null,
                     content: '',
                     group: 0,
-                    type: 'point'
+                    type: 'point',
+                    isNew: true
                 };
                 this.showAnnotationForm(newItem, (item) => {
                     if (item) this.items.add(item);
@@ -759,7 +775,8 @@ class AnnotationPlayerIIIF extends HTMLElement {
             type: type,
             author: creatorName,
             created: item.created || '',
-            permissions: itemPermissions // Stockage des droits spécifiques à l'item
+            permissions: itemPermissions, // Stockage des droits spécifiques à l'item
+            isNew: false
         };
     }
 
@@ -877,14 +894,14 @@ class AnnotationPlayerIIIF extends HTMLElement {
         // Sort by start time
         allAnnotations.sort((a, b) => a.start - b.start);
 
-        // Check if we need to re-render (e.g. items changed count or search changed or order changed)
-        const currentOrder = allAnnotations.map(a => a.id).join(',');
-        const orderChanged = display.dataset.lastOrder !== currentOrder;
+        // Check if we need to re-render (e.g. items changed count or search changed or order changed or content changed)
+        const currentContentHash = allAnnotations.map(a => `${a.id}:${a.content}:${a.value}:${a.start}:${a.end}`).join('|');
+        const contentChanged = display.dataset.lastContentHash !== currentContentHash;
 
-        if (display.children.length !== allAnnotations.length || display.dataset.lastSearch !== searchTerm || orderChanged) {
+        if (display.children.length !== allAnnotations.length || display.dataset.lastSearch !== searchTerm || contentChanged) {
             this.renderAnnotationList(display, allAnnotations);
             display.dataset.lastSearch = searchTerm;
-            display.dataset.lastOrder = currentOrder;
+            display.dataset.lastContentHash = currentContentHash;
         }
 
         this.updateActiveAnnotations(display, allAnnotations, currentTime);
@@ -1078,77 +1095,78 @@ class AnnotationPlayerIIIF extends HTMLElement {
         const newCancelBtn = cancelBtn.cloneNode(true);
         cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
 
-        newSaveBtn.onclick = async () => {
-            const type = typeSelect.value;
-            const newStart = parseFloat(startTimeInput.value) * 1000;
-            const title = titleInput.value;
-            const text = textInput.value;
+                newSaveBtn.onclick = async () => {
+                    const type = typeSelect.value;
+                    const newStart = parseFloat(startTimeInput.value) * 1000;
+                    const title = titleInput.value;
+                    const text = textInput.value;
 
-            // Prepare data for API
-            const apiData = {
-                resource_id: this._resourceId,
-                time: newStart / 1000,
-                title: title,
-                text: text
-            };
+                    // Prepare data for API
+                    const apiData = {
+                        resource_id: this._resourceId,
+                        time: newStart / 1000,
+                        title: title,
+                        text: text
+                    };
 
-            if (type === 'range') {
-                const newEnd = parseFloat(endTimeInput.value) * 1000;
-                if (isNaN(newEnd) || newEnd <= newStart) {
-                    alert('Invalid End Time');
-                    return;
-                }
-                apiData.end_time = newEnd / 1000;
-            }
-
-            if (this._apiBaseUrl) {
-                // Determine if it's an update or create
-                // We check if item.id is a "real" ID (from API) or a temporary one
-                // Usually temporary IDs are large numbers from Date().getTime()
-                // Let's assume if it was loaded from IIIF it has a string ID or small numeric ID
-                // For this implementation, let's use a simple heuristic: if it's a new item (from onAdd)
-                // it might not have the properties from _processIIIFItem yet.
-                
-                // Better: check if the item already exists in the DataSet
-                const existingItem = this.items.get(item.id);
-                const isNew = !existingItem || String(item.id).length > 12; // Simple heuristic for timestamp ID
-
-                if (isNew) {
-                    const result = await this._apiCall('create', null, apiData);
-                    if (result) {
-                        const processed = this._processIIIFItem(result);
-                        // If there was a temporary item in the DataSet, remove it
-                        if (existingItem) {
-                            this.items.remove(item.id);
+                    if (type === 'range') {
+                        const newEnd = parseFloat(endTimeInput.value) * 1000;
+                        if (isNaN(newEnd) || newEnd <= newStart) {
+                            alert('Invalid End Time');
+                            return;
                         }
-                        callback(processed);
-                        modal.style.display = 'none';
+                        apiData.end_time = newEnd / 1000;
                     }
-                } else {
-                    const result = await this._apiCall('update', item.id, apiData);
-                    if (result) {
-                        const processed = this._processIIIFItem(result);
-                        callback(processed);
+
+                    if (this._apiBaseUrl) {
+                        // Determine if it's an update or create
+                        // We check if item.id is a "real" ID (from API) or a temporary one
+                        // Usually temporary IDs are large numbers from Date().getTime()
+                        // Let's assume if it was loaded from IIIF it has a string ID or small numeric ID
+                        // For this implementation, let's use a simple heuristic: if it's a new item (from onAdd)
+                        // it might not have the properties from _processIIIFItem yet.
+
+                        // Better: check if the item already exists in the DataSet
+                        const existingItem = this.items.get(item.id);
+                        // On considère comme nouveau si item.isNew est true OU si l'item n'existe pas encore dans le DataSet
+                        const isNew = item.isNew || !existingItem;
+
+                        if (isNew) {
+                            const result = await this._apiCall('create', null, apiData);
+                            if (result) {
+                                const processed = this._processIIIFItem(result);
+                                // If there was a temporary item in the DataSet, remove it
+                                if (existingItem) {
+                                    this.items.remove(item.id);
+                                }
+                                modal.style.display = 'none';
+                                callback(processed);
+                            }
+                        } else {
+                            const result = await this._apiCall('update', item.id, apiData);
+                            if (result) {
+                                const processed = this._processIIIFItem(result);
+                                modal.style.display = 'none';
+                                callback(processed);
+                            }
+                        }
+                        // If result is null, _apiCall already showed an error, we stay in the modal
+                    } else {
+                        // No API, local update only
+                        item.label = title;
+                        item.value = text;
+                        item.content = title || text;
+                        item.start = newStart;
+                        item.type = type;
+                        if (type === 'range') {
+                            item.end = parseFloat(endTimeInput.value) * 1000;
+                        } else {
+                            item.end = null;
+                        }
                         modal.style.display = 'none';
+                        callback(item);
                     }
-                }
-                // If result is null, _apiCall already showed an error, we stay in the modal
-            } else {
-                // No API, local update only
-                item.label = title;
-                item.value = text;
-                item.content = title || text;
-                item.start = newStart;
-                item.type = type;
-                if (type === 'range') {
-                    item.end = parseFloat(endTimeInput.value) * 1000;
-                } else {
-                    item.end = null;
-                }
-                callback(item);
-                modal.style.display = 'none';
-            }
-        };
+                };
 
         newCancelBtn.onclick = () => {
             callback(null);

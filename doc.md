@@ -25,7 +25,23 @@ Utilisez la balise `<annotation-player-iiif>` avec les attributs suivants pour c
     annotation-properties-to-display="time,text,author"
     can-add-annotation="true"
     can-edit-all-annotation="true"
+    colors='["#1890ff", "#333333", "#ffffff", "#eeeeee"]'
+    iiif-permissions-path="omeka:permissions"
+    permissions-map="add:create,edit:edit,delete:delete"
+    permission-error-selector="#perm-error-msg"
+    api-base-url="https://example.com/api/annotations"
+    resource-id="123"
 ></annotation-player-iiif>
+```
+
+### Messages d'erreur personnalisés (Optionnel)
+
+Vous pouvez définir un élément HTML caché contenant un message d'erreur personnalisé à afficher lorsque l'utilisateur n'a pas les permissions nécessaires. Utilisez `permission-error-selector` pour pointer vers cet élément.
+
+```html
+<div id="perm-error-msg" style="display: none;">
+    <p><strong>Accès refusé !</strong> Vous n'avez pas les droits pour cette action.</p>
+</div>
 ```
 
 ## Attributs et Propriétés
@@ -42,39 +58,52 @@ Voici la liste complète des attributs supportés :
 ### Visualisation
 
 *   **`wave-form-url`** : L'URL du fichier JSON contenant les données de la forme d'onde (généré par `audiowaveform` ou compatible).
-*   **`waveform-stroke-color`** : La couleur du trait de la forme d'onde (ex: `rgba(0, 0, 0, 0.48)`). Défaut : `rgba(0, 0, 0, 0.48)`.
+*   **`waveform-stroke-color`** : La couleur du trait de la forme d'onde (ex: `rgba(0, 0, 0, 0.2)`). Défaut : `rgba(0, 0, 0, 0.2)`.
 *   **`waveform-stroke-width`** : L'épaisseur du trait de la forme d'onde en pixels. Défaut : `1`.
+*   **`colors`** : Un tableau JSON de 4 couleurs pour personnaliser l'interface : `[primaire, texte, arrière-plan, bordure]`.
+    *   Exemple : `["#1890ff", "#333333", "#ffffff", "#eeeeee"]`
 
 ### Annotations
 
 *   **`iiif-annotation-list-url`** : L'URL de la liste d'annotations (format IIIF Presentation API ou JSON simple).
 *   **`annotation-min-time-to-display`** : Durée minimale (en secondes) pendant laquelle une annotation ponctuelle reste affichée dans la liste sous le lecteur. Défaut : `15`.
 *   **`annotation-properties-to-display`** : Liste des propriétés de l'annotation à afficher, séparées par des virgules.
-    *   Valeurs possibles : `time` (temps), `text` (contenu), `author` (auteur), `creator.id` (id du créateur).
+    *   Valeurs possibles : `time`, `text`, `author`, `creator.id`.
     *   Exemple : `time,text,author`
 
-### Permissions et Édition
+### Permissions et API
 
 *   **`can-add-annotation`** : `true` ou `false`. Affiche ou masque le bouton "Ajouter une annotation". Défaut : `true`.
-*   **`can-edit-all-annotation`** : `true` ou `false`. Permet d'éditer (déplacer, redimensionner, modifier le texte) toutes les annotations. Défaut : `true`.
+*   **`can-edit-all-annotation`** : `true` ou `false`. Permet d'éditer toutes les annotations sans restriction. Défaut : `true`.
 *   **`can-update-annotation-for-author-name`** : Si défini, permet d'éditer uniquement les annotations dont l'auteur correspond à cette valeur.
+*   **`iiif-permissions-path`** : Chemin vers l'objet de permissions dans le JSON IIIF. Défaut : `omeka:permissions`.
+*   **`permissions-map`** : Correspondance entre les actions du player et les clés de permissions IIIF.
+    *   Format : `add:clé,edit:clé,delete:clé`. Défaut : `add:create,edit:edit,delete:delete`.
+*   **`permission-error-selector`** : Sélecteur CSS vers un élément contenant un message d'erreur personnalisé.
+*   **`api-base-url`** : URL de base pour les appels API (CRUD des annotations).
+*   **`resource-id`** : Identifiant de la ressource parente pour l'API.
 
 ## Fonctionnalités
 
-*   **Lecture Média** : Lecteur Video.js intégré avec contrôles persistants.
+*   **Lecture Média** : Lecteur Video.js intégré avec contrôles persistants et support des sous-titres (VTT).
 *   **Timeline Interactive** :
-    *   Zoom avec la molette de la souris (Ctrl + Molette).
-    *   Déplacement latéral (Drag & Drop).
-    *   Sélection d'annotation au clic.
-    *   Double-clic sur la timeline (si `can-add-annotation` est actif) pour créer une annotation.
-    *   Double-clic sur une annotation (si permission accordée) pour l'éditer.
+    *   Zoom avec la molette de la souris (Ctrl + Molette) ou boutons de contrôle (+/-).
+    *   Déplacement latéral (Drag & Drop) ou boutons de navigation (flèches).
+    *   Sélection d'annotation au clic pour déplacer la tête de lecture.
+    *   Double-clic sur la timeline (si permis) pour créer une annotation.
+    *   Double-clic sur une annotation (si permis) pour l'éditer.
 *   **Synchronisation** :
     *   Le curseur de la timeline suit la lecture.
     *   Cliquer sur la timeline déplace la tête de lecture.
-    *   Les annotations s'affichent dynamiquement sous le lecteur en fonction du temps courant.
-*   **Édition** :
-    *   Formulaire modal pour créer/modifier des annotations (Type Point ou Plage, Temps, Texte).
-    *   Support du Drag & Drop pour déplacer les annotations sur la timeline.
+    *   Les annotations s'affichent dynamiquement sous le lecteur avec un effet de mise en exergue (pulse) pour les annotations ponctuelles.
+    *   Auto-scroll de la liste des annotations pour suivre la lecture (si la souris n'est pas sur la liste).
+*   **Recherche et Filtrage** :
+    *   Barre de recherche intégrée pour filtrer les annotations par texte, label ou auteur.
+*   **Édition et API** :
+    *   Formulaire modal pour créer/modifier des annotations (Point ou Plage).
+    *   Synchronisation automatique avec une API distante (Create, Update, Delete).
+    *   Gestion fine des droits basée sur les métadonnées IIIF (via Omeka S ou autre).
+    *   Support du Drag & Drop pour déplacer les annotations.
 
 ## Exemple Complet
 
@@ -92,13 +121,22 @@ Voici la liste complète des attributs supportés :
 </head>
 <body>
     <div id="player-wrapper">
+        <!-- Optionnel : Message d'erreur personnalisé -->
+        <div id="perm-error-msg" style="display: none;">
+            <p><strong>Accès refusé !</strong> Vous n'avez pas les droits nécessaires.</p>
+        </div>
+
         <annotation-player-iiif
             media-url="media/interview.mp3"
+            media-type="audio"
             wave-form-url="data/waveform.json"
             iiif-annotation-list-url="data/annotations.json"
-            subtitle-files-url='[{"url": "data/subs.vtt", "language": "fr", "label": "Français"}]'
-            annotation-properties-to-display="time,text"
-            can-add-annotation="true"
+            subtitle-files-url='[{"url": "data/subs_fr.vtt", "language": "fr", "label": "Français"}]'
+            annotation-properties-to-display="time,text,author"
+            can-add-annotation="false"
+            can-edit-all-annotation="false"
+            api-base-url="https://votre-api.com/annotations"
+            permission-error-selector="#perm-error-msg"
         ></annotation-player-iiif>
     </div>
     <script type="module" src="dist/player-iiif-vis.js"></script>

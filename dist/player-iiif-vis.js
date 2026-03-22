@@ -63451,7 +63451,9 @@ class W_e extends HTMLElement {
         }
       },
       onAdd: async (i, n) => {
-        this.showAnnotationForm(i, n);
+        i.isNew = !0, this.showAnnotationForm(i, (s) => {
+          s ? (this.items.add(s), n(s)) : n(null);
+        });
       },
       onMove: async (i, n) => {
         if (this.canEditItem(i, "edit"))
@@ -63481,7 +63483,9 @@ class W_e extends HTMLElement {
           this.showPermissionError(!0), n(null);
       },
       onUpdate: async (i, n) => {
-        this.canEditItem(i, "edit") ? this.showAnnotationForm(i, n) : (this.showPermissionError(!0), n(null));
+        this.canEditItem(i, "edit") ? this.showAnnotationForm(i, (s) => {
+          s ? (this.items.update(s), n(s)) : n(null);
+        }) : (this.showPermissionError(!0), n(null));
       }
     };
     this.timeline = new UC(e, this.items, t), this.timeline.addCustomTime(0, "videoProgress"), this.items.on("*", () => {
@@ -63567,7 +63571,8 @@ class W_e extends HTMLElement {
         end: null,
         content: "",
         group: 0,
-        type: "point"
+        type: "point",
+        isNew: !0
       };
       this.showAnnotationForm(n, (s) => {
         s && this.items.add(s);
@@ -63602,8 +63607,9 @@ class W_e extends HTMLElement {
       type: l,
       author: u,
       created: e.created || "",
-      permissions: h
+      permissions: h,
       // Stockage des droits spécifiques à l'item
+      isNew: !1
     };
   }
   async loadIIIFAnnotations(e) {
@@ -63646,8 +63652,8 @@ class W_e extends HTMLElement {
       filter: (l) => n ? (l.content + " " + l.value + " " + l.label).toLowerCase().includes(n) : !0
     });
     s.sort((l, u) => l.start - u.start);
-    const a = s.map((l) => l.id).join(","), o = t.dataset.lastOrder !== a;
-    (t.children.length !== s.length || t.dataset.lastSearch !== n || o) && (this.renderAnnotationList(t, s), t.dataset.lastSearch = n, t.dataset.lastOrder = a), this.updateActiveAnnotations(t, s, e);
+    const a = s.map((l) => `${l.id}:${l.content}:${l.value}:${l.start}:${l.end}`).join("|"), o = t.dataset.lastContentHash !== a;
+    (t.children.length !== s.length || t.dataset.lastSearch !== n || o) && (this.renderAnnotationList(t, s), t.dataset.lastSearch = n, t.dataset.lastContentHash = a), this.updateActiveAnnotations(t, s, e);
   }
   renderAnnotationList(e, t) {
     e.innerHTML = "", t.forEach((i) => {
@@ -63745,21 +63751,21 @@ class W_e extends HTMLElement {
       }
       if (this._apiBaseUrl) {
         const P = this.items.get(e.id);
-        if (!P || String(e.id).length > 12) {
+        if (e.isNew || !P) {
           const O = await this._apiCall("create", null, A);
           if (O) {
             const I = this._processIIIFItem(O);
-            P && this.items.remove(e.id), t(I), i.style.display = "none";
+            P && this.items.remove(e.id), i.style.display = "none", t(I);
           }
         } else {
           const O = await this._apiCall("update", e.id, A);
           if (O) {
             const I = this._processIIIFItem(O);
-            t(I), i.style.display = "none";
+            i.style.display = "none", t(I);
           }
         }
       } else
-        e.label = x, e.value = D, e.content = x || D, e.start = E, e.type = b, b === "range" ? e.end = parseFloat(o.value) * 1e3 : e.end = null, t(e), i.style.display = "none";
+        e.label = x, e.value = D, e.content = x || D, e.start = E, e.type = b, b === "range" ? e.end = parseFloat(o.value) * 1e3 : e.end = null, i.style.display = "none", t(e);
     }, g.onclick = () => {
       t(null), i.style.display = "none";
     };
