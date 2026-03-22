@@ -63162,11 +63162,12 @@ class W_e extends HTMLElement {
       "api-base-url",
       "resource-id",
       "share-iframe-url",
-      "force-embedded-mode"
+      "force-embedded-mode",
+      "playback-rates"
     ];
   }
   constructor() {
-    super(), this._iiifAnnotationListUrl = null, this._mediaUrl = null, this._mediaType = "audio", this._waveFormUrl = null, this._subtitleFilesUrl = null, this._waveformStrokeColor = "rgba(0, 0, 0, 0.2)", this._waveformStrokeWidth = 1, this._annotationMinTimeToDisplay = 15, this._annotationPropertiesToDisplay = ["time", "text", "author"], this._canAddAnnotation = !0, this._canEditAllAnnotation = !0, this._canUpdateAnnotationForAuthorName = null, this._colors = ["#1890ff", "#333333", "#ffffff", "#eeeeee"], this._iiifPermissionsPath = "omeka:permissions", this._permissionsMap = "add:create,edit:edit,delete:delete", this._permissionErrorSelector = null, this._errorTimeout = null, this._apiBaseUrl = null, this._resourceId = null, this._shareIframeUrl = null, this._forceEmbeddedMode = !1, this.isEmbedded = !1, this._checkEmbeddedStatus(), this.player = null, this.timeline = null, this.items = new Ea([]), this.clickTimeout = null, this.startClickTime = 0, this.startClickPos = { x: 0, y: 0 };
+    super(), this._iiifAnnotationListUrl = null, this._mediaUrl = null, this._mediaType = "audio", this._waveFormUrl = null, this._subtitleFilesUrl = null, this._waveformStrokeColor = "rgba(0, 0, 0, 0.2)", this._waveformStrokeWidth = 1, this._annotationMinTimeToDisplay = 15, this._annotationPropertiesToDisplay = ["time", "text", "author"], this._canAddAnnotation = !0, this._canEditAllAnnotation = !0, this._canUpdateAnnotationForAuthorName = null, this._colors = ["#1890ff", "#333333", "#ffffff", "#eeeeee"], this._iiifPermissionsPath = "omeka:permissions", this._permissionsMap = "add:create,edit:edit,delete:delete", this._permissionErrorSelector = null, this._errorTimeout = null, this._apiBaseUrl = null, this._resourceId = null, this._shareIframeUrl = null, this._forceEmbeddedMode = !1, this._playbackRates = [0.5, 1, 1.25, 1.5, 2], this.isEmbedded = !1, this._checkEmbeddedStatus(), this.player = null, this.timeline = null, this.items = new Ea([]), this.clickTimeout = null, this.startClickTime = 0, this.startClickPos = { x: 0, y: 0 };
   }
   connectedCallback() {
     this.render(), this.initPlayer(), this.initTimeline(), this.loadData();
@@ -63241,6 +63242,18 @@ class W_e extends HTMLElement {
           break;
         case "share-iframe-url":
           this._shareIframeUrl = i, this.render();
+          break;
+        case "playback-rates":
+          try {
+            if (i === "false")
+              this._playbackRates = !1;
+            else {
+              const n = JSON.parse(i);
+              Array.isArray(n) ? this._playbackRates = n : console.warn('Invalid playback-rates attribute: must be an array or "false"');
+            }
+          } catch {
+            console.warn("Invalid playback-rates attribute: JSON parse error");
+          }
           break;
       }
   }
@@ -63431,8 +63444,9 @@ class W_e extends HTMLElement {
       height: t,
       loadingSpinner: !1,
       bigPlayButton: !1,
-      inactivityTimeout: 0
+      inactivityTimeout: 0,
       // Keep controls visible
+      playbackRates: this._playbackRates
       //bigPlayButton: false, // Hide the initial big play button*/
     }), this.player.on("ready", () => {
     }), this.player.on("loadedmetadata", () => {

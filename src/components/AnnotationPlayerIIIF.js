@@ -28,7 +28,8 @@ class AnnotationPlayerIIIF extends HTMLElement {
             'api-base-url',
             'resource-id',
             'share-iframe-url',
-            'force-embedded-mode'
+            'force-embedded-mode',
+            'playback-rates'
         ];
     }
 
@@ -56,6 +57,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this._resourceId = null;
         this._shareIframeUrl = null;
         this._forceEmbeddedMode = false;
+        this._playbackRates = [0.5, 1, 1.25, 1.5, 2];
 
         // Internal state
         this.isEmbedded = false;
@@ -166,6 +168,22 @@ class AnnotationPlayerIIIF extends HTMLElement {
             case 'share-iframe-url':
                 this._shareIframeUrl = newValue;
                 this.render();
+                break;
+            case 'playback-rates':
+                try {
+                    if (newValue === 'false') {
+                        this._playbackRates = false;
+                    } else {
+                        const parsed = JSON.parse(newValue);
+                        if (Array.isArray(parsed)) {
+                            this._playbackRates = parsed;
+                        } else {
+                            console.warn('Invalid playback-rates attribute: must be an array or "false"');
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Invalid playback-rates attribute: JSON parse error');
+                }
                 break;
         }
     }
@@ -423,6 +441,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
             loadingSpinner: false,
             bigPlayButton: false,
             inactivityTimeout: 0, // Keep controls visible
+            playbackRates: this._playbackRates,
             //bigPlayButton: false, // Hide the initial big play button*/
         });
 

@@ -31,6 +31,8 @@ Utilisez la balise `<annotation-player-iiif>` avec les attributs suivants pour c
     permission-error-selector="#perm-error-msg"
     api-base-url="https://example.com/api/annotations"
     resource-id="123"
+    share-iframe-url="iframe_demo.html"
+    playback-rates="[0.5, 1, 1.25, 1.5, 2]"
 ></annotation-player-iiif>
 ```
 
@@ -54,6 +56,7 @@ Voici la liste complète des attributs supportés :
 *   **`media-type`** : Le type de média. Valeurs possibles : `audio` (défaut) ou `video`.
 *   **`subtitle-files-url`** : Une chaîne JSON représentant un tableau d'objets pour les pistes de sous-titres.
     *   Format : `[{"url": "chemin/vers/fichier.vtt", "language": "code_langue", "label": "Libellé"}]`
+*   **`playback-rates`** : Un tableau JSON des vitesses de lecture autorisées. Par défaut : `[0.5, 1, 1.25, 1.5, 2]`. Utiliser `"false"` (chaîne de caractères) pour désactiver le sélecteur de vitesse natif.
 
 ### Visualisation
 
@@ -83,9 +86,14 @@ Voici la liste complète des attributs supportés :
 *   **`api-base-url`** : URL de base pour les appels API (CRUD des annotations).
 *   **`resource-id`** : Identifiant de la ressource parente pour l'API.
 
+### Intégration et Partage
+
+*   **`share-iframe-url`** : L'URL utilisée pour générer le code d'iframe dans la modal de partage. Si absent, le bouton "Partager" n'est pas affiché.
+*   **`force-embedded-mode`** : `true` ou `false`. Force le mode embarqué (compact, hauteur fixe de 100vh, scroll interne). Ce mode est automatiquement activé si le composant est détecté à l'intérieur d'une iframe.
+
 ## Fonctionnalités
 
-*   **Lecture Média** : Lecteur Video.js intégré avec contrôles persistants et support des sous-titres (VTT).
+*   **Lecture Média** : Lecteur Video.js intégré avec contrôles persistants, support des sous-titres (VTT) et réglage de la vitesse de lecture.
 *   **Timeline Interactive** :
     *   Zoom avec la molette de la souris (Ctrl + Molette) ou boutons de contrôle (+/-).
     *   Déplacement latéral (Drag & Drop) ou boutons de navigation (flèches).
@@ -99,6 +107,10 @@ Voici la liste complète des attributs supportés :
     *   Auto-scroll de la liste des annotations pour suivre la lecture (si la souris n'est pas sur la liste).
 *   **Recherche et Filtrage** :
     *   Barre de recherche intégrée pour filtrer les annotations par texte, label ou auteur.
+*   **Partage** :
+    *   Bouton "Partager" (si `share-iframe-url` est présent) ouvrant une modal avec le code d'intégration HTML (iframe) prêt à être copié.
+*   **Mode Embarqué (Embedded)** :
+    *   Le composant s'adapte automatiquement lorsqu'il est utilisé dans une iframe ou si `force-embedded-mode="true"` : il occupe alors toute la hauteur disponible (100vh) avec un scroll interne pour la liste des annotations.
 *   **Édition et API** :
     *   Formulaire modal pour créer/modifier des annotations (Point ou Plage).
     *   Synchronisation automatique avec une API distante (Create, Update, Delete).
