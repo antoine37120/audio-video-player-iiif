@@ -63182,10 +63182,16 @@ class W_e extends HTMLElement {
           this._iiifAnnotationListUrl = i, this.loadIIIFAnnotations(i);
           break;
         case "media-url":
-          this._mediaUrl = i;
+          if (this._mediaUrl = i, this.player) {
+            let n;
+            this._mediaUrl.endsWith(".mp3") ? n = "audio/mpeg" : this._mediaUrl.endsWith(".mp4") ? n = "video/mp4" : this._mediaUrl.endsWith(".webm") ? n = "video/webm" : this._mediaUrl.endsWith(".ogg") ? n = "video/ogg" : this._mediaUrl.endsWith(".wav") && (n = "audio/wav"), !n && this._mediaType === "video" ? n = "video/mp4" : !n && this._mediaType === "audio" && (n = "audio/mpeg"), this.player.src({
+              src: this._mediaUrl,
+              type: n
+            });
+          }
           break;
         case "media-type":
-          this._mediaType = i;
+          this._mediaType = i, this.render(), this.initPlayer(), this.initTimeline(), this.loadData();
           break;
         case "wave-form-url":
           this._waveFormUrl = i, this.loadWaveform(i);
@@ -63292,10 +63298,10 @@ class W_e extends HTMLElement {
   }
   render() {
     this.updateColors();
-    const e = this.isEmbedded ? "player-container is-embedded" : "player-container";
+    const e = this.isEmbedded ? "player-container is-embedded" : "player-container", t = this._mediaType === "video" ? "video" : "audio";
     this.innerHTML = `
             <div class="${e}">
-                <audio class="video-js vjs-default-skin"></audio>
+                <${t} class="video-js vjs-default-skin"></${t}>
                 <div class="visualization"></div>
                 <div class="controls">
                     <button class="add-annotation-btn" title="Ajouter une annotation">
@@ -63365,8 +63371,8 @@ class W_e extends HTMLElement {
                 </div>
             </div>
         `, this.updateUI(), this.bindEvents();
-    const t = this.querySelector(".close-error-btn");
-    t && (t.onclick = () => this.showPermissionError(!1));
+    const i = this.querySelector(".close-error-btn");
+    i && (i.onclick = () => this.showPermissionError(!1));
   }
   showPermissionError(e, t = null) {
     const i = this.querySelector(".permission-error-popup"), n = this.querySelector(".error-content");
@@ -63430,39 +63436,53 @@ class W_e extends HTMLElement {
     e && (e.style.display = this._canAddAnnotation ? "inline-block" : "none");
   }
   initPlayer() {
+    this.player && (this.player.dispose(), this.player = null);
     const e = this.querySelector(".video-js");
     let t = 30;
-    e && (this._mediaUrl && (e.src = this._mediaUrl), this._subtitleFilesUrl && Array.isArray(this._subtitleFilesUrl) && this._subtitleFilesUrl.forEach((i) => {
-      const n = document.createElement("track");
-      n.kind = "subtitles", n.label = i.label || i.language, n.srclang = i.language, n.src = i.url, e.appendChild(n), t = 90;
-    }), this._mediaType === "video" && (t = 300), this.player = K(e, {
-      controls: !0,
-      autoplay: !1,
-      preload: "auto",
-      fluid: !1,
-      width: "100%",
-      height: t,
-      loadingSpinner: !1,
-      bigPlayButton: !1,
-      inactivityTimeout: 0,
-      // Keep controls visible
-      playbackRates: this._playbackRates
-      //bigPlayButton: false, // Hide the initial big play button*/
-    }), this.player.on("ready", () => {
-    }), this.player.on("loadedmetadata", () => {
-      const i = this.player.duration() * 1e3;
-      this.timeline && (console.log("Setting timeline options with duration:", i), this.timeline.setOptions({
-        min: /* @__PURE__ */ new Date(0),
-        max: new Date(i),
-        end: new Date(i),
-        zoomMax: i
-      }), this.timeline.setWindow(/* @__PURE__ */ new Date(0), new Date(i)));
-    }), this.player.on("timeupdate", () => {
-      const i = this.player.currentTime() * 1e3;
-      this.timeline && this.timeline.setCustomTime(i, "videoProgress"), this.updateAnnotationDisplay(i);
-    }));
+    if (e) {
+      if (this._mediaType === "video" && (t = 300), this.player = K(e, {
+        controls: !0,
+        autoplay: !1,
+        preload: "auto",
+        fluid: !1,
+        width: "100%",
+        height: t,
+        loadingSpinner: !1,
+        bigPlayButton: this._mediaType === "video",
+        inactivityTimeout: 0,
+        // Keep controls visible
+        playbackRates: this._playbackRates
+      }), this._mediaUrl) {
+        let i;
+        this._mediaUrl.endsWith(".mp3") ? i = "audio/mpeg" : this._mediaUrl.endsWith(".mp4") ? i = "video/mp4" : this._mediaUrl.endsWith(".webm") ? i = "video/webm" : this._mediaUrl.endsWith(".ogg") ? i = "video/ogg" : this._mediaUrl.endsWith(".wav") && (i = "audio/wav"), !i && this._mediaType === "video" ? i = "video/mp4" : !i && this._mediaType === "audio" && (i = "audio/mpeg"), this.player.src({
+          src: this._mediaUrl,
+          type: i
+        });
+      }
+      this._subtitleFilesUrl && Array.isArray(this._subtitleFilesUrl) && (this._subtitleFilesUrl.forEach((i) => {
+        this.player.addRemoteTextTrack({
+          kind: "subtitles",
+          label: i.label || i.language,
+          srclang: i.language,
+          src: i.url
+        }, !1);
+      }), this._mediaType !== "video" && (t = 90)), this.player.on("ready", () => {
+      }), this.player.on("loadedmetadata", () => {
+        const i = this.player.duration() * 1e3;
+        this.timeline && (console.log("Setting timeline options with duration:", i), this.timeline.setOptions({
+          min: /* @__PURE__ */ new Date(0),
+          max: new Date(i),
+          end: new Date(i),
+          zoomMax: i
+        }), this.timeline.setWindow(/* @__PURE__ */ new Date(0), new Date(i)));
+      }), this.player.on("timeupdate", () => {
+        const i = this.player.currentTime() * 1e3;
+        this.timeline && this.timeline.setCustomTime(i, "videoProgress"), this.updateAnnotationDisplay(i);
+      });
+    }
   }
   initTimeline() {
+    this.timeline && (this.timeline.destroy(), this.timeline = null);
     const e = this.querySelector(".visualization"), t = {
       width: "100%",
       height: "140px",

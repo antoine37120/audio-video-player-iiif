@@ -4,6 +4,10 @@
     --bg-col: #ffffff; /* Background */
     --b-col: #eeeeee; /* Border */
 }
+input, textarea, button, .button, select {
+    line-height: ;
+}
+
 
 /* ensure progress control is on top of wavesurfer.js plugins */
 .vjs-wavesurfer .vjs-progress-control {
@@ -181,6 +185,15 @@
     height: 100%;
     overflow-y: auto; /* Active le scroll global interne */
     box-sizing: border-box;
+}
+
+.player-container.is-embedded .vjs-menu-button-popup .vjs-menu {
+    margin-bottom: 0;
+}
+.player-container.is-embedded .vjs-menu-button-popup .vjs-menu .vjs-menu-content {
+    bottom: auto;
+    top: 100%;
+    z-index: 1010;
 }
 
 /* Styles pour la popup d'erreur de permission */

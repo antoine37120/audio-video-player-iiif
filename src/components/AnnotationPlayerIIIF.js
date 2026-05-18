@@ -98,10 +98,29 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 break;
             case 'media-url':
                 this._mediaUrl = newValue;
-                // Re-init player if needed or src change
+                if (this.player) {
+                    let type = undefined;
+                    if (this._mediaUrl.endsWith('.mp3')) type = 'audio/mpeg';
+                    else if (this._mediaUrl.endsWith('.mp4')) type = 'video/mp4';
+                    else if (this._mediaUrl.endsWith('.webm')) type = 'video/webm';
+                    else if (this._mediaUrl.endsWith('.ogg')) type = 'video/ogg';
+                    else if (this._mediaUrl.endsWith('.wav')) type = 'audio/wav';
+
+                    if (!type && this._mediaType === 'video') type = 'video/mp4';
+                    else if (!type && this._mediaType === 'audio') type = 'audio/mpeg';
+
+                    this.player.src({
+                        src: this._mediaUrl,
+                        type: type
+                    });
+                }
                 break;
             case 'media-type':
                 this._mediaType = newValue;
+                this.render();
+                this.initPlayer();
+                this.initTimeline(); // Reset timeline as duration might change
+                this.loadData();
                 break;
             case 'wave-form-url':
                 this._waveFormUrl = newValue;
@@ -218,10 +237,11 @@ class AnnotationPlayerIIIF extends HTMLElement {
     render() {
         this.updateColors(); // Init colors
         const containerClass = this.isEmbedded ? 'player-container is-embedded' : 'player-container';
+        const mediaTag = this._mediaType === 'video' ? 'video' : 'audio';
 
         this.innerHTML = `
             <div class="${containerClass}">
-                <audio class="video-js vjs-default-skin"></audio>
+                <${mediaTag} class="video-js vjs-default-skin"></${mediaTag}>
                 <div class="visualization"></div>
                 <div class="controls">
                     <button class="add-annotation-btn" title="Ajouter une annotation">
@@ -405,27 +425,14 @@ class AnnotationPlayerIIIF extends HTMLElement {
     }
 
     initPlayer() {
+        if (this.player) {
+            this.player.dispose();
+            this.player = null;
+        }
+
         const videoElement = this.querySelector('.video-js');
         let playerHeight = 30;
         if (!videoElement) return;
-
-        // Set src if available
-        if (this._mediaUrl) {
-            videoElement.src = this._mediaUrl;
-        }
-
-        // Add subtitles if available
-        if (this._subtitleFilesUrl && Array.isArray(this._subtitleFilesUrl)) {
-            this._subtitleFilesUrl.forEach(track => {
-                const trackEl = document.createElement('track');
-                trackEl.kind = 'subtitles';
-                trackEl.label = track.label || track.language;
-                trackEl.srclang = track.language;
-                trackEl.src = track.url;
-                videoElement.appendChild(trackEl);
-                playerHeight = 90;
-            });
-        }
 
         if (this._mediaType === 'video') {
             playerHeight = 300;
@@ -439,11 +446,42 @@ class AnnotationPlayerIIIF extends HTMLElement {
             width: '100%',
             height: playerHeight,
             loadingSpinner: false,
-            bigPlayButton: false,
+            bigPlayButton: this._mediaType === 'video',
             inactivityTimeout: 0, // Keep controls visible
             playbackRates: this._playbackRates,
-            //bigPlayButton: false, // Hide the initial big play button*/
         });
+
+        // Set src after initialization
+        if (this._mediaUrl) {
+            let type = undefined;
+            if (this._mediaUrl.endsWith('.mp3')) type = 'audio/mpeg';
+            else if (this._mediaUrl.endsWith('.mp4')) type = 'video/mp4';
+            else if (this._mediaUrl.endsWith('.webm')) type = 'video/webm';
+            else if (this._mediaUrl.endsWith('.ogg')) type = 'video/ogg';
+            else if (this._mediaUrl.endsWith('.wav')) type = 'audio/wav';
+
+            // Fallback for URLs without extension if mediaType is known
+            if (!type && this._mediaType === 'video') type = 'video/mp4'; // Probable default
+            else if (!type && this._mediaType === 'audio') type = 'audio/mpeg';
+
+            this.player.src({
+                src: this._mediaUrl,
+                type: type
+            });
+        }
+
+        // Add subtitles if available
+        if (this._subtitleFilesUrl && Array.isArray(this._subtitleFilesUrl)) {
+            this._subtitleFilesUrl.forEach(track => {
+                this.player.addRemoteTextTrack({
+                    kind: 'subtitles',
+                    label: track.label || track.language,
+                    srclang: track.language,
+                    src: track.url
+                }, false);
+            });
+            if (this._mediaType !== 'video') playerHeight = 90;
+        }
 
         this.player.on('ready', () => {
             //this.player.userActive(false);
@@ -473,6 +511,11 @@ class AnnotationPlayerIIIF extends HTMLElement {
     }
 
     initTimeline() {
+        if (this.timeline) {
+            this.timeline.destroy();
+            this.timeline = null;
+        }
+
         const container = this.querySelector('.visualization');
         const options = {
             width: '100%',
