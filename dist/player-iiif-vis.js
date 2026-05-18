@@ -63163,11 +63163,12 @@ class W_e extends HTMLElement {
       "resource-id",
       "share-iframe-url",
       "force-embedded-mode",
-      "playback-rates"
+      "playback-rates",
+      "help-selector"
     ];
   }
   constructor() {
-    super(), this._iiifAnnotationListUrl = null, this._mediaUrl = null, this._mediaType = "audio", this._waveFormUrl = null, this._subtitleFilesUrl = null, this._waveformStrokeColor = "rgba(0, 0, 0, 0.2)", this._waveformStrokeWidth = 1, this._annotationMinTimeToDisplay = 15, this._annotationPropertiesToDisplay = ["time", "text", "author"], this._canAddAnnotation = !0, this._canEditAllAnnotation = !0, this._canUpdateAnnotationForAuthorName = null, this._colors = ["#1890ff", "#333333", "#ffffff", "#eeeeee"], this._iiifPermissionsPath = "omeka:permissions", this._permissionsMap = "add:create,edit:edit,delete:delete", this._permissionErrorSelector = null, this._errorTimeout = null, this._apiBaseUrl = null, this._resourceId = null, this._shareIframeUrl = null, this._forceEmbeddedMode = !1, this._playbackRates = [0.5, 1, 1.25, 1.5, 2], this.isEmbedded = !1, this._checkEmbeddedStatus(), this.player = null, this.timeline = null, this.items = new Ea([]), this.clickTimeout = null, this.startClickTime = 0, this.startClickPos = { x: 0, y: 0 };
+    super(), this._iiifAnnotationListUrl = null, this._mediaUrl = null, this._mediaType = "audio", this._waveFormUrl = null, this._subtitleFilesUrl = null, this._waveformStrokeColor = "rgba(0, 0, 0, 0.2)", this._waveformStrokeWidth = 1, this._annotationMinTimeToDisplay = 15, this._annotationPropertiesToDisplay = ["time", "text", "author"], this._canAddAnnotation = !0, this._canEditAllAnnotation = !0, this._canUpdateAnnotationForAuthorName = null, this._colors = ["#1890ff", "#333333", "#ffffff", "#eeeeee"], this._iiifPermissionsPath = "omeka:permissions", this._permissionsMap = "add:create,edit:edit,delete:delete", this._permissionErrorSelector = null, this._errorTimeout = null, this._apiBaseUrl = null, this._resourceId = null, this._shareIframeUrl = null, this._forceEmbeddedMode = !1, this._playbackRates = [0.5, 1, 1.25, 1.5, 2], this._helpSelector = null, this.isEmbedded = !1, this._checkEmbeddedStatus(), this.player = null, this.timeline = null, this.items = new Ea([]), this.clickTimeout = null, this.startClickTime = 0, this.startClickPos = { x: 0, y: 0 };
   }
   connectedCallback() {
     this.render(), this.initPlayer(), this.initTimeline(), this.loadData();
@@ -63261,6 +63262,9 @@ class W_e extends HTMLElement {
             console.warn("Invalid playback-rates attribute: JSON parse error");
           }
           break;
+        case "help-selector":
+          this._helpSelector = i;
+          break;
       }
   }
   _checkEmbeddedStatus() {
@@ -63312,6 +63316,13 @@ class W_e extends HTMLElement {
                     <button class="share-btn" title="Générer le code d'intégration">
                         <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
                             <path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81 1.66 0 3-1.34 3-3s-1.34-3-3-3-3 1.34-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9c-1.66 0-3 1.34-3 3s1.34 3 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.16c-.05.21-.08.43-.08.65 0 1.61 1.31 2.92 2.92 2.92s2.92-1.31 2.92-2.92c0-1.61-1.31-2.92-2.92-2.92z"/>
+                        </svg>
+                    </button>
+                    ` : ""}
+                    ${this._helpSelector ? `
+                    <button class="help-btn" title="Aide">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="currentColor">
+                            <path d="M11 18h2v-2h-2v2zm1-16C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm0-14c-2.21 0-4 1.79-4 4h2c0-1.1.9-2 2-2s2 .9 2 2c0 2-3 1.75-3 5h2c0-2.25 3-2.5 3-5 0-2.21-1.79-4-4-4z"/>
                         </svg>
                     </button>
                     ` : ""}
@@ -63368,6 +63379,14 @@ class W_e extends HTMLElement {
                         <button class="close-share">Fermer</button>
                         <button class="copy-share" style="background:var(--p-col); color:white;">Copier</button>
                     </div>
+                </div>
+            </div>
+
+            <!-- Help Popup -->
+            <div class="help-popup" style="display:none;">
+                <div class="help-popup-content">
+                    <button class="close-help-btn">&times;</button>
+                    <div class="help-popup-body"></div>
                 </div>
             </div>
         `, this.updateUI(), this.bindEvents();
@@ -63643,33 +63662,41 @@ class W_e extends HTMLElement {
         this.showPermissionError(!0);
         return;
       }
-      const a = this.player.currentTime() * 1e3, o = {
+      const u = this.player.currentTime() * 1e3, c = {
         id: (/* @__PURE__ */ new Date()).getTime(),
-        start: new Date(a),
+        start: new Date(u),
         end: null,
         content: "",
         group: 0,
         type: "point",
         isNew: !0
       };
-      this.showAnnotationForm(o, (l) => {
-        l && this.items.add(l);
+      this.showAnnotationForm(c, (h) => {
+        h && this.items.add(h);
       });
     });
     const t = this.querySelector(".share-btn");
     t && t.addEventListener("click", () => this.showShareModal());
-    const i = this.querySelector(".close-share");
-    i && (i.onclick = () => {
+    const i = this.querySelector(".help-btn");
+    i && i.addEventListener("click", () => this.showHelpPopup());
+    const n = this.querySelector(".close-help-btn");
+    n && (n.onclick = () => this.hideHelpPopup());
+    const s = this.querySelector(".help-popup");
+    s && (s.onclick = (u) => {
+      u.target === s && this.hideHelpPopup();
+    });
+    const a = this.querySelector(".close-share");
+    a && (a.onclick = () => {
       this.querySelector(".modal-share").style.display = "none";
     });
-    const n = this.querySelector(".copy-share");
-    n && (n.onclick = () => {
-      this.querySelector(".share-code").select(), document.execCommand("copy"), n.innerText = "Copié !", setTimeout(() => {
-        n.innerText = "Copier";
+    const o = this.querySelector(".copy-share");
+    o && (o.onclick = () => {
+      this.querySelector(".share-code").select(), document.execCommand("copy"), o.innerText = "Copié !", setTimeout(() => {
+        o.innerText = "Copier";
       }, 2e3);
     });
-    const s = this.querySelector(".annotation-search");
-    s && s.addEventListener("input", () => {
+    const l = this.querySelector(".annotation-search");
+    l && l.addEventListener("input", () => {
       this.player && this.updateAnnotationDisplay(this.player.currentTime() * 1e3);
     });
   }
@@ -63863,6 +63890,18 @@ class W_e extends HTMLElement {
   showShareModal() {
     const e = this.querySelector(".share-code"), i = `<iframe width='362' height='215' frameborder='0' scrolling='no' src='${this._shareIframeUrl || window.location.href}'></iframe>`;
     e.value = i, this.querySelector(".modal-share").style.display = "flex";
+  }
+  showHelpPopup() {
+    if (!this._helpSelector) return;
+    const e = document.querySelector(this._helpSelector);
+    if (e) {
+      const t = this.querySelector(".help-popup-body");
+      t && (t.innerHTML = e.innerHTML, this.querySelector(".help-popup").style.display = "flex");
+    }
+  }
+  hideHelpPopup() {
+    const e = this.querySelector(".help-popup");
+    e && (e.style.display = "none");
   }
   formatTime(e) {
     const t = Math.floor(e / 60), i = Math.floor(e % 60);

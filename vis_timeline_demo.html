@@ -50,11 +50,12 @@
             resource-id="123"
             force-embedded-mode="false"
             share-iframe-url="iframe_demo.html"
+            help-selector="#helper-video-player"
             playback-rates="[0.5, 1, 1.5, 2, 4]"
             subtitle-files-url='[{"url": "public/subtitles_en.vtt", "language": "en", "label": "English"}, {"url": "public/subtitles_fr.vtt", "language": "fr", "label": "Français"}]'></annotation-player-iiif>
     </div>
 
-    <div style="margin-top: 20px; color: #666;">
+    <div style="margin-top: 20px; color: #666;display: none;" id="helper-video-player">
         <p><strong>Instructions:</strong></p>
         <ul>
             <li>Double-click on the timeline to create a new annotation.</li>
