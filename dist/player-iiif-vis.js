@@ -63185,10 +63185,17 @@ class W_e extends HTMLElement {
         case "media-url":
           if (this._mediaUrl = i, this.player) {
             let n;
-            this._mediaUrl.endsWith(".mp3") ? n = "audio/mpeg" : this._mediaUrl.endsWith(".mp4") ? n = "video/mp4" : this._mediaUrl.endsWith(".webm") ? n = "video/webm" : this._mediaUrl.endsWith(".ogg") ? n = "video/ogg" : this._mediaUrl.endsWith(".wav") && (n = "audio/wav"), !n && this._mediaType === "video" ? n = "video/mp4" : !n && this._mediaType === "audio" && (n = "audio/mpeg"), this.player.src({
-              src: this._mediaUrl,
-              type: n
-            });
+            if (this._mediaUrl.endsWith(".mp3") ? n = "audio/mpeg" : this._mediaUrl.endsWith(".mp4") ? n = "video/mp4" : this._mediaUrl.endsWith(".webm") ? n = "video/webm" : this._mediaUrl.endsWith(".ogg") ? n = "video/ogg" : this._mediaUrl.endsWith(".wav") && (n = "audio/wav"), n)
+              this.player.src({ src: this._mediaUrl, type: n });
+            else {
+              const s = this;
+              fetch(this._mediaUrl, { method: "HEAD" }).then((a) => {
+                const o = a.headers.get("Content-Type") || "";
+                s.player.src({ src: s._mediaUrl, type: o });
+              }).catch(() => {
+                s.player.src({ src: s._mediaUrl });
+              });
+            }
           }
           break;
         case "media-type":
@@ -63473,10 +63480,17 @@ class W_e extends HTMLElement {
         playbackRates: this._playbackRates
       }), this._mediaUrl) {
         let i;
-        this._mediaUrl.endsWith(".mp3") ? i = "audio/mpeg" : this._mediaUrl.endsWith(".mp4") ? i = "video/mp4" : this._mediaUrl.endsWith(".webm") ? i = "video/webm" : this._mediaUrl.endsWith(".ogg") ? i = "video/ogg" : this._mediaUrl.endsWith(".wav") && (i = "audio/wav"), !i && this._mediaType === "video" ? i = "video/mp4" : !i && this._mediaType === "audio" && (i = "audio/mpeg"), this.player.src({
-          src: this._mediaUrl,
-          type: i
-        });
+        if (this._mediaUrl.endsWith(".mp3") ? i = "audio/mpeg" : this._mediaUrl.endsWith(".mp4") ? i = "video/mp4" : this._mediaUrl.endsWith(".webm") ? i = "video/webm" : this._mediaUrl.endsWith(".ogg") ? i = "video/ogg" : this._mediaUrl.endsWith(".wav") && (i = "audio/wav"), i)
+          this.player.src({ src: this._mediaUrl, type: i });
+        else {
+          const n = this;
+          fetch(this._mediaUrl, { method: "HEAD" }).then((s) => {
+            const a = s.headers.get("Content-Type") || "";
+            n.player.src({ src: n._mediaUrl, type: a });
+          }).catch(() => {
+            n.player.src({ src: n._mediaUrl });
+          });
+        }
       }
       this._subtitleFilesUrl && Array.isArray(this._subtitleFilesUrl) && (this._subtitleFilesUrl.forEach((i) => {
         this.player.addRemoteTextTrack({

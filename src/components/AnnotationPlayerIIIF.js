@@ -107,14 +107,20 @@ class AnnotationPlayerIIIF extends HTMLElement {
                     else if (this._mediaUrl.endsWith('.webm')) type = 'video/webm';
                     else if (this._mediaUrl.endsWith('.ogg')) type = 'video/ogg';
                     else if (this._mediaUrl.endsWith('.wav')) type = 'audio/wav';
-
-                    if (!type && this._mediaType === 'video') type = 'video/mp4';
-                    else if (!type && this._mediaType === 'audio') type = 'audio/mpeg';
-
-                    this.player.src({
-                        src: this._mediaUrl,
-                        type: type
-                    });
+                    if (!type) {
+                        // Pas d'extension → détecter le Content-Type via HEAD request
+                        const self = this;
+                        fetch(this._mediaUrl, { method: 'HEAD' })
+                            .then(r => {
+                                const ct = r.headers.get('Content-Type') || '';
+                                self.player.src({ src: self._mediaUrl, type: ct });
+                            })
+                            .catch(() => {
+                                self.player.src({ src: self._mediaUrl });
+                            });
+                    } else {
+                        this.player.src({ src: this._mediaUrl, type: type });
+                    }
                 }
                 break;
             case 'media-type':
@@ -481,13 +487,21 @@ class AnnotationPlayerIIIF extends HTMLElement {
             else if (this._mediaUrl.endsWith('.wav')) type = 'audio/wav';
 
             // Fallback for URLs without extension if mediaType is known
-            if (!type && this._mediaType === 'video') type = 'video/mp4'; // Probable default
-            else if (!type && this._mediaType === 'audio') type = 'audio/mpeg';
+            if (!type) {
+                // Pas d'extension → détecter le Content-Type via HEAD request
+                const self = this;
+                fetch(this._mediaUrl, { method: 'HEAD' })
+                    .then(r => {
+                        const ct = r.headers.get('Content-Type') || '';
+                        self.player.src({ src: self._mediaUrl, type: ct });
+                    })
+                    .catch(() => {
+                        self.player.src({ src: self._mediaUrl });
+                    });
+            } else {
+                this.player.src({ src: this._mediaUrl, type: type });
+            }
 
-            this.player.src({
-                src: this._mediaUrl,
-                type: type
-            });
         }
 
         // Add subtitles if available
