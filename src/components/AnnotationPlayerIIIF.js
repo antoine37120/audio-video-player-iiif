@@ -603,7 +603,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 item.isNew = true;
                 this.showAnnotationForm(item, (newItem) => {
                     if (newItem) {
-                        this.items.add(newItem);
+                        //this.items.add(newItem);
                         callback(newItem);
                     } else {
                         callback(null);

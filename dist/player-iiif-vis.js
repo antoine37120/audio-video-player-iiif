@@ -63563,7 +63563,7 @@ class W_e extends HTMLElement {
       },
       onAdd: async (i, n) => {
         i.isNew = !0, this.showAnnotationForm(i, (s) => {
-          s ? (this.items.add(s), n(s)) : n(null);
+          n(s || null);
         });
       },
       onMove: async (i, n) => {
