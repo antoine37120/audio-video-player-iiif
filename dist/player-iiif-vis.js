@@ -63212,7 +63212,7 @@ class W_e extends HTMLElement {
         case "subtitle-list-url":
           if (!i) break;
           if (i.startsWith("http://") || i.startsWith("https://"))
-            this._subtitleListUrl = i, this._subtitleListPromise = this.fetchSubtitleList();
+            this._subtitleListUrl = i, this._subtitleListPromise = this.fetchSubtitleList(i);
           else if (i.startsWith("[") || i.startsWith("{"))
             try {
               const n = JSON.parse(i);
@@ -63528,18 +63528,18 @@ class W_e extends HTMLElement {
       this._subtitleListPromise && this._subtitleListPromise.then(() => {
         if (this._subtitleFilesUrl && Array.isArray(this._subtitleFilesUrl)) {
           const i = this._subtitleFieldMapping || { url: "url", language: "language", label: "label" };
-          this.player && (this._subtitleFilesUrl.forEach((n) => {
-            const s = this.player.addRemoteTextTrack({
-              kind: "subtitles",
-              label: n[i.label] || n[i.language],
-              srclang: n[i.language],
-              src: n[i.url]
-            }, !1);
-            s && s.track && (s.track.mode = "showing");
-          }), this._mediaType !== "video" && this.player.height(90), setTimeout(() => {
+          if (this.player) {
+            this._subtitleFilesUrl.forEach((s) => {
+              this.player.addRemoteTextTrack({
+                kind: "subtitles",
+                label: s[i.label] || s[i.language],
+                srclang: s[i.language],
+                src: s[i.url]
+              }, !0);
+            }), this._mediaType !== "video" && this.player.height(90);
             const n = this.player.getChild("ControlBar")?.getChild("SubsCapsButton");
             n && (n.items_ = n.createItems(), n.update(), n.show(), n.el() && n.el().offsetHeight);
-          }, 50));
+          }
         }
       }), this.player.on("ready", () => {
       }), this.player.on("loadedmetadata", () => {
@@ -63759,13 +63759,13 @@ class W_e extends HTMLElement {
   loadData() {
     this._iiifAnnotationListUrl && this.loadIIIFAnnotations(this._iiifAnnotationListUrl), this._waveFormUrl && this.loadWaveform(this._waveFormUrl);
   }
-  async fetchSubtitleList() {
+  async fetchSubtitleList(e) {
     try {
-      const e = await fetch(this._subtitleListUrl);
-      if (!e.ok) return;
-      const t = await e.json();
-      if (!Array.isArray(t)) return;
-      this._subtitleFilesUrl = t;
+      const t = e + (e.includes("?") ? "&" : "?") + "_t=" + Date.now(), i = await fetch(t, { cache: "no-cache" });
+      if (!i.ok) return;
+      const n = await i.json();
+      if (!Array.isArray(n)) return;
+      this._subtitleFilesUrl = n;
     } catch {
     }
   }

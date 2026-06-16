@@ -146,7 +146,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 if (!newValue) break;
                 if (newValue.startsWith('http://') || newValue.startsWith('https://')) {
                     this._subtitleListUrl = newValue;
-                    this._subtitleListPromise = this.fetchSubtitleList();
+                    this._subtitleListPromise = this.fetchSubtitleList(newValue);
                 } else if (newValue.startsWith('[') || newValue.startsWith('{')) {
                     try {
                         const parsed = JSON.parse(newValue);
@@ -554,23 +554,17 @@ class AnnotationPlayerIIIF extends HTMLElement {
                                 label: track[m.label] || track[m.language],
                                 srclang: track[m.language],
                                 src: track[m.url]
-                            }, false);
-                            // Forcer l'affichage immédiat du bouton CC
-                            if (remoteTrack && remoteTrack.track) {
-                                remoteTrack.track.mode = 'showing';
-                            }
+                            }, true);
                         });
                         if (this._mediaType !== 'video') this.player.height(90);
-                        // Forcer le SubsCapsButton à se montrer (après les events internes video.js)
-                        setTimeout(() => {
-                            const subsCaps = this.player.getChild('ControlBar')?.getChild('SubsCapsButton');
-                            if (subsCaps) {
-                                subsCaps.items_ = subsCaps.createItems();
-                                subsCaps.update();
-                                subsCaps.show();
-                                if (subsCaps.el()) void subsCaps.el().offsetHeight;
-                            }
-                        }, 50);
+                        // Forcer le SubsCapsButton à se montrer
+                        const subsCaps = this.player.getChild('ControlBar')?.getChild('SubsCapsButton');
+                        if (subsCaps) {
+                            subsCaps.items_ = subsCaps.createItems();
+                            subsCaps.update();
+                            subsCaps.show();
+                            if (subsCaps.el()) void subsCaps.el().offsetHeight;
+                        }
                     }
                 }
             });
@@ -971,9 +965,11 @@ class AnnotationPlayerIIIF extends HTMLElement {
         }
     }
 
-    async fetchSubtitleList() {
+    async fetchSubtitleList(url) {
         try {
-            const response = await fetch(this._subtitleListUrl);
+            // Ajouter un timestamp pour éviter le cache navigateur
+            const cacheBuster = url + (url.includes('?') ? '&' : '?') + '_t=' + Date.now();
+            const response = await fetch(cacheBuster, { cache: 'no-cache' });
             if (!response.ok) return;
             const data = await response.json();
             if (!Array.isArray(data)) return;
