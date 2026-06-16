@@ -21,7 +21,10 @@ Utilisez la balise `<annotation-player-iiif>` avec les attributs suivants pour c
     media-type="audio"
     wave-form-url="public/waveform.json"
     iiif-annotation-list-url="https://example.com/annotations.json"
-    subtitle-files-url='[{"url": "subs_fr.vtt", "language": "fr", "label": "Français"}]'
+    subtitle-list-url="https://example.com/subtitles.json"
+    subtitle-field-mapping='{"url": "url", "language": "language", "label": "label"}'
+    <!-- Forme alternative : JSON inline
+         subtitle-list-url='[{"url": "subs_fr.vtt", "language": "fr", "label": "Français"}]' -->
     annotation-properties-to-display="time,text,author"
     can-add-annotation="true"
     can-edit-all-annotation="true"
@@ -68,8 +71,16 @@ Voici la liste complète des attributs supportés :
 
 *   **`media-url`** (Requis) : L'URL du fichier audio ou vidéo à lire.
 *   **`media-type`** : Le type de média. Valeurs possibles : `audio` (défaut) ou `video`.
-*   **`subtitle-files-url`** : Une chaîne JSON représentant un tableau d'objets pour les pistes de sous-titres.
+*   **`subtitle-files-url`** *(rétrocompatibilité)* : Une chaîne JSON représentant un tableau d'objets pour les pistes de sous-titres.
     *   Format : `[{"url": "chemin/vers/fichier.vtt", "language": "code_langue", "label": "Libellé"}]`
+    *   Conservé pour ne pas casser les intégrations existantes. Préférez `subtitle-list-url` pour les nouveaux usages.
+*   **`subtitle-list-url`** : Source des pistes de sous-titres. Accepte deux formats :
+    *   Une **URL distante** (`http://` ou `https://`) vers un JSON : le composant effectue un `fetch` pour récupérer le tableau des pistes, puis les ajoute au lecteur (y compris après l'initialisation du player).
+    *   Un **JSON inline** (commençant par `[` ou `{`) : parsé directement, équivalent à l'ancien `subtitle-files-url` (backward compat).
+    *   Format attendu du tableau : `[{"url": "chemin/vers/fichier.vtt", "language": "code_langue", "label": "Libellé"}]`
+*   **`subtitle-field-mapping`** : Permet de mapper les clés du JSON des sous-titres vers les propriétés attendues par le lecteur. Utile si votre source utilise des noms de champs différents (ex: `file`, `lang`, `name`).
+    *   Format : `{"url": "clé_url", "language": "clé_langue", "label": "clé_libellé"}`
+    *   Défaut : `{"url": "url", "language": "language", "label": "label"}`
 *   **`playback-rates`** : Un tableau JSON des vitesses de lecture autorisées. Par défaut : `[0.5, 1, 1.25, 1.5, 2]`. Utiliser `"false"` (chaîne de caractères) pour désactiver le sélecteur de vitesse natif.
 
 ### Visualisation
@@ -160,7 +171,7 @@ Voici la liste complète des attributs supportés :
             media-type="audio"
             wave-form-url="data/waveform.json"
             iiif-annotation-list-url="data/annotations.json"
-            subtitle-files-url='[{"url": "data/subs_fr.vtt", "language": "fr", "label": "Français"}]'
+            subtitle-list-url="data/subtitles.json"
             annotation-properties-to-display="time,text,author"
             can-add-annotation="false"
             can-edit-all-annotation="false"

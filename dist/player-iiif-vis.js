@@ -63148,6 +63148,8 @@ class W_e extends HTMLElement {
       "media-type",
       "wave-form-url",
       "subtitle-files-url",
+      "subtitle-list-url",
+      "subtitle-field-mapping",
       "waveform-stroke-color",
       "waveform-stroke-width",
       "annotation-min-time-to-display",
@@ -63168,7 +63170,7 @@ class W_e extends HTMLElement {
     ];
   }
   constructor() {
-    super(), this._iiifAnnotationListUrl = null, this._mediaUrl = null, this._mediaType = "audio", this._waveFormUrl = null, this._subtitleFilesUrl = null, this._waveformStrokeColor = "rgba(0, 0, 0, 0.2)", this._waveformStrokeWidth = 1, this._annotationMinTimeToDisplay = 15, this._annotationPropertiesToDisplay = ["time", "text", "author"], this._canAddAnnotation = !0, this._canEditAllAnnotation = !0, this._canUpdateAnnotationForAuthorName = null, this._colors = ["#1890ff", "#333333", "#ffffff", "#eeeeee"], this._iiifPermissionsPath = "omeka:permissions", this._permissionsMap = "add:create,edit:edit,delete:delete", this._permissionErrorSelector = null, this._errorTimeout = null, this._apiBaseUrl = null, this._resourceId = null, this._shareIframeUrl = null, this._forceEmbeddedMode = !1, this._playbackRates = [0.5, 1, 1.25, 1.5, 2], this._helpSelector = null, this.isEmbedded = !1, this._checkEmbeddedStatus(), this.player = null, this.timeline = null, this.items = new Ea([]), this.clickTimeout = null, this.startClickTime = 0, this.startClickPos = { x: 0, y: 0 };
+    super(), this._iiifAnnotationListUrl = null, this._mediaUrl = null, this._mediaType = "audio", this._waveFormUrl = null, this._subtitleFilesUrl = null, this._subtitleListUrl = null, this._subtitleListPromise = null, this._subtitleFieldMapping = { url: "url", language: "language", label: "label" }, this._waveformStrokeColor = "rgba(0, 0, 0, 0.2)", this._waveformStrokeWidth = 1, this._annotationMinTimeToDisplay = 15, this._annotationPropertiesToDisplay = ["time", "text", "author"], this._canAddAnnotation = !0, this._canEditAllAnnotation = !0, this._canUpdateAnnotationForAuthorName = null, this._colors = ["#1890ff", "#333333", "#ffffff", "#eeeeee"], this._iiifPermissionsPath = "omeka:permissions", this._permissionsMap = "add:create,edit:edit,delete:delete", this._permissionErrorSelector = null, this._errorTimeout = null, this._apiBaseUrl = null, this._resourceId = null, this._shareIframeUrl = null, this._forceEmbeddedMode = !1, this._playbackRates = [0.5, 1, 1.25, 1.5, 2], this._helpSelector = null, this.isEmbedded = !1, this._checkEmbeddedStatus(), this.player = null, this.timeline = null, this.items = new Ea([]), this.clickTimeout = null, this.startClickTime = 0, this.startClickPos = { x: 0, y: 0 };
   }
   connectedCallback() {
     this.render(), this.initPlayer(), this.initTimeline(), this.loadData();
@@ -63206,6 +63208,25 @@ class W_e extends HTMLElement {
           break;
         case "subtitle-files-url":
           this._subtitleFilesUrl = JSON.parse(i || "[]");
+          break;
+        case "subtitle-list-url":
+          if (!i) break;
+          if (i.startsWith("http://") || i.startsWith("https://"))
+            this._subtitleListUrl = i, this._subtitleListPromise = this.fetchSubtitleList();
+          else if (i.startsWith("[") || i.startsWith("{"))
+            try {
+              const n = JSON.parse(i);
+              this._subtitleFilesUrl = Array.isArray(n) ? n : [n];
+            } catch {
+              console.warn("Invalid subtitle-list-url JSON");
+            }
+          break;
+        case "subtitle-field-mapping":
+          try {
+            this._subtitleFieldMapping = JSON.parse(i);
+          } catch {
+            console.warn("Invalid subtitle-field-mapping");
+          }
           break;
         case "waveform-stroke-color":
           this._waveformStrokeColor = i, this.drawWaveform();
@@ -63477,7 +63498,19 @@ class W_e extends HTMLElement {
         bigPlayButton: this._mediaType === "video",
         inactivityTimeout: 0,
         // Keep controls visible
-        playbackRates: this._playbackRates
+        playbackRates: this._playbackRates,
+        controlBar: {
+          children: [
+            "playToggle",
+            "currentTimeDisplay",
+            "timeDivider",
+            "durationDisplay",
+            "progressControl",
+            "remainingTimeDisplay",
+            "SubsCapsButton",
+            "volumePanel"
+          ]
+        }
       }), this._mediaUrl) {
         let i;
         if (this._mediaUrl.endsWith(".mp3") ? i = "audio/mpeg" : this._mediaUrl.endsWith(".mp4") ? i = "video/mp4" : this._mediaUrl.endsWith(".webm") ? i = "video/webm" : this._mediaUrl.endsWith(".ogg") ? i = "video/ogg" : this._mediaUrl.endsWith(".wav") && (i = "audio/wav"), i)
@@ -63492,17 +63525,26 @@ class W_e extends HTMLElement {
           });
         }
       }
-      this._subtitleFilesUrl && Array.isArray(this._subtitleFilesUrl) && (this._subtitleFilesUrl.forEach((i) => {
-        this.player.addRemoteTextTrack({
-          kind: "subtitles",
-          label: i.label || i.language,
-          srclang: i.language,
-          src: i.url
-        }, !1);
-      }), this._mediaType !== "video" && (t = 90)), this.player.on("ready", () => {
+      this._subtitleListPromise && this._subtitleListPromise.then(() => {
+        if (this._subtitleFilesUrl && Array.isArray(this._subtitleFilesUrl)) {
+          const i = this._subtitleFieldMapping || { url: "url", language: "language", label: "label" };
+          this.player && (this._subtitleFilesUrl.forEach((n) => {
+            const s = this.player.addRemoteTextTrack({
+              kind: "subtitles",
+              label: n[i.label] || n[i.language],
+              srclang: n[i.language],
+              src: n[i.url]
+            }, !1);
+            s && s.track && (s.track.mode = "showing");
+          }), this._mediaType !== "video" && this.player.height(90), setTimeout(() => {
+            const n = this.player.getChild("ControlBar")?.getChild("SubsCapsButton");
+            n && (n.items_ = n.createItems(), n.update(), n.show(), n.el() && n.el().offsetHeight);
+          }, 50));
+        }
+      }), this.player.on("ready", () => {
       }), this.player.on("loadedmetadata", () => {
         const i = this.player.duration() * 1e3;
-        this.timeline && (console.log("Setting timeline options with duration:", i), this.timeline.setOptions({
+        this.timeline && (this.timeline.setOptions({
           min: /* @__PURE__ */ new Date(0),
           max: new Date(i),
           end: new Date(i),
@@ -63716,6 +63758,16 @@ class W_e extends HTMLElement {
   }
   loadData() {
     this._iiifAnnotationListUrl && this.loadIIIFAnnotations(this._iiifAnnotationListUrl), this._waveFormUrl && this.loadWaveform(this._waveFormUrl);
+  }
+  async fetchSubtitleList() {
+    try {
+      const e = await fetch(this._subtitleListUrl);
+      if (!e.ok) return;
+      const t = await e.json();
+      if (!Array.isArray(t)) return;
+      this._subtitleFilesUrl = t;
+    } catch {
+    }
   }
   _processIIIFItem(e, t = 0) {
     const i = e.target || e.on, s = (typeof i == "string" ? i : i && i.id ? i.id : "").match(/t=([\d\.]+)(,([\d\.]+))?/);

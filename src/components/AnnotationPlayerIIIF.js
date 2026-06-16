@@ -14,6 +14,8 @@ class AnnotationPlayerIIIF extends HTMLElement {
             'media-type',
             'wave-form-url',
             'subtitle-files-url',
+            'subtitle-list-url',
+            'subtitle-field-mapping',
             'waveform-stroke-color',
             'waveform-stroke-width',
             'annotation-min-time-to-display',
@@ -42,6 +44,9 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this._mediaType = 'audio'; // Default from usage
         this._waveFormUrl = null;
         this._subtitleFilesUrl = null;
+        this._subtitleListUrl = null;
+        this._subtitleListPromise = null;
+        this._subtitleFieldMapping = { url: 'url', language: 'language', label: 'label' };
         this._waveformStrokeColor = 'rgba(0, 0, 0, 0.2)'; // Lighter for readability
         this._waveformStrokeWidth = 1;
         this._annotationMinTimeToDisplay = 15;
@@ -136,6 +141,27 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 break;
             case 'subtitle-files-url':
                 this._subtitleFilesUrl = JSON.parse(newValue || '[]');
+                break;
+            case 'subtitle-list-url':
+                if (!newValue) break;
+                if (newValue.startsWith('http://') || newValue.startsWith('https://')) {
+                    this._subtitleListUrl = newValue;
+                    this._subtitleListPromise = this.fetchSubtitleList();
+                } else if (newValue.startsWith('[') || newValue.startsWith('{')) {
+                    try {
+                        const parsed = JSON.parse(newValue);
+                        this._subtitleFilesUrl = Array.isArray(parsed) ? parsed : [parsed];
+                    } catch (e) {
+                        console.warn('Invalid subtitle-list-url JSON');
+                    }
+                }
+                break;
+            case 'subtitle-field-mapping':
+                try {
+                    this._subtitleFieldMapping = JSON.parse(newValue);
+                } catch (e) {
+                    console.warn('Invalid subtitle-field-mapping');
+                }
                 break;
             case 'waveform-stroke-color':
                 this._waveformStrokeColor = newValue;
@@ -475,6 +501,18 @@ class AnnotationPlayerIIIF extends HTMLElement {
             bigPlayButton: this._mediaType === 'video',
             inactivityTimeout: 0, // Keep controls visible
             playbackRates: this._playbackRates,
+            controlBar: {
+                children: [
+                    'playToggle',
+                    'currentTimeDisplay',
+                    'timeDivider',
+                    'durationDisplay',
+                    'progressControl',
+                    'remainingTimeDisplay',
+                    'SubsCapsButton',
+                    'volumePanel'
+                ]
+            },
         });
 
         // Set src after initialization
@@ -504,17 +542,38 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
         }
 
-        // Add subtitles if available
-        if (this._subtitleFilesUrl && Array.isArray(this._subtitleFilesUrl)) {
-            this._subtitleFilesUrl.forEach(track => {
-                this.player.addRemoteTextTrack({
-                    kind: 'subtitles',
-                    label: track.label || track.language,
-                    srclang: track.language,
-                    src: track.url
-                }, false);
+        // Si le fetch est en cours, ajouter les tracks quand il finit
+        if (this._subtitleListPromise) {
+            this._subtitleListPromise.then(() => {
+                if (this._subtitleFilesUrl && Array.isArray(this._subtitleFilesUrl)) {
+                    const m = this._subtitleFieldMapping || { url: 'url', language: 'language', label: 'label' };
+                    if (this.player) {
+                        this._subtitleFilesUrl.forEach(track => {
+                            const remoteTrack = this.player.addRemoteTextTrack({
+                                kind: 'subtitles',
+                                label: track[m.label] || track[m.language],
+                                srclang: track[m.language],
+                                src: track[m.url]
+                            }, false);
+                            // Forcer l'affichage immédiat du bouton CC
+                            if (remoteTrack && remoteTrack.track) {
+                                remoteTrack.track.mode = 'showing';
+                            }
+                        });
+                        if (this._mediaType !== 'video') this.player.height(90);
+                        // Forcer le SubsCapsButton à se montrer (après les events internes video.js)
+                        setTimeout(() => {
+                            const subsCaps = this.player.getChild('ControlBar')?.getChild('SubsCapsButton');
+                            if (subsCaps) {
+                                subsCaps.items_ = subsCaps.createItems();
+                                subsCaps.update();
+                                subsCaps.show();
+                                if (subsCaps.el()) void subsCaps.el().offsetHeight;
+                            }
+                        }, 50);
+                    }
+                }
             });
-            if (this._mediaType !== 'video') playerHeight = 90;
         }
 
         this.player.on('ready', () => {
@@ -524,7 +583,6 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this.player.on('loadedmetadata', () => {
             const duration = this.player.duration() * 1000;
             if (this.timeline) {
-                console.log('Setting timeline options with duration:', duration);
                 this.timeline.setOptions({
                     min: new Date(0),
                     max: new Date(duration),
@@ -910,6 +968,18 @@ class AnnotationPlayerIIIF extends HTMLElement {
         }
         if (this._waveFormUrl) {
             this.loadWaveform(this._waveFormUrl);
+        }
+    }
+
+    async fetchSubtitleList() {
+        try {
+            const response = await fetch(this._subtitleListUrl);
+            if (!response.ok) return;
+            const data = await response.json();
+            if (!Array.isArray(data)) return;
+            this._subtitleFilesUrl = data;
+        } catch (e) {
+            // Silently fail
         }
     }
 
