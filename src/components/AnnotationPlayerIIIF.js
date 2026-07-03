@@ -32,7 +32,10 @@ class AnnotationPlayerIIIF extends HTMLElement {
             'share-iframe-url',
             'force-embedded-mode',
             'playback-rates',
-            'help-selector'
+            'help-selector',
+            'height-audio',
+            'height-video',
+            'height-annotations'
         ];
     }
 
@@ -65,6 +68,10 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this._forceEmbeddedMode = false;
         this._playbackRates = [0.5, 1, 1.25, 1.5, 2];
         this._helpSelector = null;
+        this._heightAudio = 250;
+        this._heightVideo = 450;
+        this._heightAnnotations = 150;
+        this._hasAnnotations = false;
 
         // Internal state
         this.isEmbedded = false;
@@ -84,6 +91,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
         this.initPlayer();
         this.initTimeline();
         this.loadData();
+        this.updateContainerHeight();
     }
 
     disconnectedCallback() {
@@ -134,6 +142,7 @@ class AnnotationPlayerIIIF extends HTMLElement {
                 this.initPlayer();
                 this.initTimeline(); // Reset timeline as duration might change
                 this.loadData();
+                this.updateContainerHeight();
                 break;
             case 'wave-form-url':
                 this._waveFormUrl = newValue;
@@ -241,6 +250,15 @@ class AnnotationPlayerIIIF extends HTMLElement {
             case 'help-selector':
                 this._helpSelector = newValue;
                 break;
+            case 'height-audio':
+                this._heightAudio = parseInt(newValue, 10) || 250;
+                break;
+            case 'height-video':
+                this._heightVideo = parseInt(newValue, 10) || 450;
+                break;
+            case 'height-annotations':
+                this._heightAnnotations = parseInt(newValue, 10) || 150;
+                break;
         }
     }
 
@@ -269,6 +287,18 @@ class AnnotationPlayerIIIF extends HTMLElement {
         if (text) this.style.setProperty('--t-col', text);
         if (bg) this.style.setProperty('--bg-col', bg);
         if (border) this.style.setProperty('--b-col', border);
+    }
+
+    updateContainerHeight() {
+        const container = this.querySelector('.player-container');
+        if (!container) return;
+
+        const baseHeight = this._mediaType === 'video' ? this._heightVideo : this._heightAudio;
+        const extraHeight = this._hasAnnotations ? this._heightAnnotations : 0;
+        const totalHeight = baseHeight + extraHeight;
+
+        container.style.height = totalHeight + 'px';
+        container.style.overflowY = 'auto';
     }
 
     render() {
@@ -556,7 +586,26 @@ class AnnotationPlayerIIIF extends HTMLElement {
                                 src: track[m.url]
                             }, true);
                         });
-                        if (this._mediaType !== 'video') this.player.height(90);
+                        // Auto-select subtitle by browser language, fallback to first
+                        const textTracks = this.player.textTracks();
+                        const browserLang = (navigator.language || '').split('-')[0];
+                        let selectedTrack = null;
+                        for (let i = 0; i < textTracks.length; i++) {
+                            const tt = textTracks[i];
+                            if (tt.kind === 'subtitles') {
+                                if (!selectedTrack) {
+                                    selectedTrack = tt;
+                                }
+                                const trackLang = (tt.language || '').split('-')[0];
+                                if (trackLang === browserLang) {
+                                    selectedTrack = tt;
+                                    break;
+                                }
+                            }
+                        }
+                        if (selectedTrack) {
+                            selectedTrack.mode = 'showing';
+                        }
                         // Forcer le SubsCapsButton à se montrer
                         const subsCaps = this.player.getChild('ControlBar')?.getChild('SubsCapsButton');
                         if (subsCaps) {
@@ -974,6 +1023,14 @@ class AnnotationPlayerIIIF extends HTMLElement {
             const data = await response.json();
             if (!Array.isArray(data)) return;
             this._subtitleFilesUrl = data;
+            if (Array.isArray(this._subtitleFilesUrl)) {
+                const m = this._subtitleFieldMapping || { url: 'url', language: 'language', label: 'label' };
+                this._subtitleFilesUrl.sort((a, b) => {
+                    const labelA = (a[m.label] || a[m.language] || '').toLowerCase();
+                    const labelB = (b[m.label] || b[m.language] || '').toLowerCase();
+                    return labelA.localeCompare(labelB);
+                });
+            }
         } catch (e) {
             // Silently fail
         }
@@ -1079,7 +1136,6 @@ class AnnotationPlayerIIIF extends HTMLElement {
             canvas.style.position = 'absolute';
             canvas.style.top = '0';
             canvas.style.left = '0';
-            canvas.style.zIndex = '-1';
             canvas.style.pointerEvents = 'none';
             visPanel.insertBefore(canvas, visPanel.firstChild);
         }
@@ -1146,6 +1202,13 @@ class AnnotationPlayerIIIF extends HTMLElement {
 
         // Sort by start time
         allAnnotations.sort((a, b) => a.start - b.start);
+
+        // Track annotation count changes for container height
+        const hadAnnotations = this._hasAnnotations;
+        this._hasAnnotations = allAnnotations.length > 0;
+        if (hadAnnotations !== this._hasAnnotations) {
+            this.updateContainerHeight();
+        }
 
         // Check if we need to re-render (e.g. items changed count or search changed or order changed or content changed)
         const currentContentHash = allAnnotations.map(a => `${a.id}:${a.content}:${a.value}:${a.start}:${a.end}`).join('|');
